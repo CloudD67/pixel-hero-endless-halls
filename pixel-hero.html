@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="像素勇者">
+<title>像素勇者：无尽回廊 (Pixel Hero: Endless Halls)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:#0a0a12;overflow:hidden;touch-action:none;overscroll-behavior:none;}
+body{display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;position:fixed;left:0;top:0;right:0;bottom:0;}
+#game{image-rendering:pixelated;image-rendering:crisp-edges;background:#14101c;box-shadow:0 0 0 2px #000,0 0 40px rgba(0,0,0,.8);touch-action:none;}
+.overlay{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(6,6,12,.82);z-index:20;text-align:center;color:#fff;touch-action:manipulation;}
+.overlay.show{display:flex;}
+.panel{background:rgba(20,16,30,.95);border:3px solid #ffd76a;border-radius:10px;padding:22px 26px;box-shadow:0 0 30px rgba(255,180,60,.25);max-width:92vw;width:auto;}
+.title-logo{font-size:44px;letter-spacing:4px;color:#ffd76a;text-shadow:3px 3px 0 #7a3b12,0 0 18px #ff9d00;}
+.title-sub{font-size:13px;color:#c9b98a;margin-top:6px;letter-spacing:3px;}
+.title-hint{font-size:17px;color:#fff;margin-top:24px;animation:blink 1.2s infinite;}
+.title-best{margin-top:12px;font-size:13px;color:#8fd0ff;}
+.best-rec{color:#ffd76a;font-weight:bold;}
+.title-keyinfo{margin-top:18px;font-size:12px;color:#9a9ab0;line-height:1.9;}
+.title-keyinfo b{color:#ffb45c;font-weight:normal;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.overlay h2{font-size:24px;color:#ffd76a;letter-spacing:3px;text-shadow:2px 2px 0 #000;}
+.cards{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+.card{width:200px;min-height:200px;background:#1c1730;border:3px solid #4a3f6e;border-radius:8px;padding:10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;touch-action:manipulation;}
+.card .icon{width:52px;height:52px;font-size:30px;}
+.card .cname{font-size:16px;color:#ffd76a;margin-top:6px;}
+.card .cdesc{font-size:12px;color:#c9c4e0;margin-top:6px;line-height:1.5;}
+.card .cstk{font-size:11px;color:#8f8aa7;margin-top:auto;padding-top:6px;}
+.shop-grid{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.sitem{width:150px;min-height:120px;background:#1c1730;border:3px solid #4a3f6e;border-radius:8px;padding:10px;cursor:pointer;display:block;text-align:center;touch-action:manipulation;}
+.sitem.disabled{opacity:.45;pointer-events:none;}
+.sitem .sname{font-size:15px;color:#ffe9a8;}
+.sitem .sdesc{font-size:11px;color:#c9c4e0;margin-top:6px;line-height:1.4;}
+.sitem .sprice{font-size:13px;color:#ffd76a;margin-top:8px;}
+.inter-tip{font-size:20px;color:#8fd0ff;letter-spacing:2px;margin-top:14px;}
+.btn{margin-top:14px;padding:12px 34px;font-size:17px;font-family:inherit;letter-spacing:1px;background:#e08a2a;color:#fff;border:3px solid #ffd76a;border-radius:8px;cursor:pointer;font-weight:bold;min-height:44px;touch-action:manipulation;}
+.btn.small{padding:10px 20px;font-size:13px;min-height:44px;}
+.btn.ghost{background:transparent;border-color:#556;color:#aab;}
+.stat-line{font-size:15px;color:#e8e4f4;margin:4px 0;}
+.stat-line b{color:#ffd76a;}
+.dead-title{font-size:34px;color:#ff4a4a;letter-spacing:6px;text-shadow:3px 3px 0 #4a0000;}
+#rec-newest{font-size:12px;margin-top:6px;}
+.pause-tip{font-size:18px;color:#dfe;letter-spacing:3px;}
+.rotate{z-index:60;background:#0a0a12;font-size:22px;letter-spacing:4px;color:#ffd76a;}
+#touch-ctl{position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:10;display:none;}
+.btn-touch{position:fixed;pointer-events:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;border:3px solid rgba(255,215,106,.75);background:radial-gradient(circle at 35% 30%, rgba(120,100,60,.55), rgba(20,16,30,.66) 75%);color:#fff;font-size:30px;text-shadow:0 0 6px #000;touch-action:none;}
+.btn-touch:active{filter:brightness(1.4);}
+#btn-attack{width:88px;height:88px;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));font-size:40px;}
+#btn-dash{width:64px;height:64px;right:116px;bottom:calc(52px + env(safe-area-inset-bottom));font-size:22px;}
+#skill-row{position:fixed;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px;pointer-events:none;}
+.btn-skill{position:relative;width:64px;height:64px;pointer-events:auto;border-radius:12px;overflow:hidden;background:rgba(20,16,30,.72);border:3px solid rgba(255,215,106,.6);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;touch-action:none;}
+.btn-skill.locked{opacity:.45;border-color:#555;}
+.btn-skill .sk-cd{position:absolute;left:0;top:0;width:100%;height:0%;background:rgba(8,8,20,.75);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.btn-skill .sk-cd b{font-size:14px;color:#ffd76a;margin-top:26px;}
+#btn-pause{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;width:46px;height:46px;pointer-events:auto;border-radius:10px;background:rgba(10,10,20,.55);border:2px solid #556;color:#cdd;font-size:20px;display:flex;align-items:center;justify-content:center;}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="lay-rotate" class="overlay rotate"><div>请旋转手机</div><div style="font-size:44px;margin-top:10px;">📱↻</div></div>
+<div id="lay-title" class="overlay"><div class="panel"><div class="title-logo">像素勇者</div><div class="title-sub">◆ 无尽回廊 · PIXEL HERO ◆</div><div class="title-hint" id="title-hint">按任意键 / 点击开始</div><div class="title-best">最高纪录：第 <span class="best-rec" id="best-wave">0</span> 波</div><div class="title-keyinfo" id="title-keys">WASD / 方向键 移动　|　J / 左键 攻击　|　K / 右键 冲刺<br>1~4 技能　|　空格 确认　|　P 暂停　|　R 重开</div></div></div>
+<div id="lay-levelup" class="overlay"><h2>— 升级！选择强化 —</h2><div class="cards" id="cards-box"></div></div>
+<div id="lay-shop" class="overlay"><h2>— 商店 —</h2><div style="font-size:15px;color:#ffd76a;margin-top:6px;" id="shop-gold"></div><div class="shop-grid" id="shop-box"></div><button class="btn small ghost" id="shop-close">离开商店</button></div>
+<div id="lay-inter" class="overlay"><h2 id="inter-title">— 波次结束 —</h2><div class="inter-tip" id="inter-prev"></div><div style="font-size:12px;color:#8a8aa7;margin-top:6px;">8 秒无操作将自动开始下一波</div><button class="btn" id="inter-go">开始下一波</button><button class="btn small ghost" id="inter-shop">进入商店（休整计时暂停）</button></div>
+<div id="lay-pause" class="overlay"><div class="panel"><div class="pause-tip">— 已暂停 —</div><button class="btn small" id="resume-btn" style="margin-top:16px;">继续游戏</button><div style="font-size:12px;color:#777;margin-top:10px;">按 P / 点击画面 也可继续</div></div></div>
+<div id="lay-dead" class="overlay"><div class="panel"><div class="dead-title">— 勇者倒下 —</div><div style="margin-top:16px" id="dead-stats"></div><div id="rec-newest"></div><button class="btn" id="dead-restart">重新挑战</button></div></div>
+<div id="touch-ctl">
+<div id="btn-attack" class="btn-touch">⚔</div><div id="btn-dash" class="btn-touch">💨</div><div id="btn-pause">⏸</div>
+<div id="skill-row">
+<div class="btn-skill" data-skill="0"><span id="sk-ico-0" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-0"><b></b></span></div>
+<div class="btn-skill" data-skill="1"><span id="sk-ico-1" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-1"><b></b></span></div>
+<div class="btn-skill" data-skill="2"><span id="sk-ico-2" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-2"><b></b></span></div>
+<div class="btn-skill locked" data-skill="3"><span id="sk-ico-3" style="pointer-events:none;">锁</span><span class="sk-cd" id="sk-cd-3"><b></b></span></div>
+</div></div>
+<script>
+/* 像素勇者：无尽回廊 — 桌面/手机统一版（单文件零依赖，双端自动适配） */
+const IS_TOUCH=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
+const CONFIG={W:IS_TOUCH?640:960,H:IS_TOUCH?360:540,FPS:60,STEP:1/60,platform:IS_TOUCH?'mobile':'desktop',
+perf:IS_TOUCH?{particle:0.5,floaterMax:30,shake:0.5,bossBullets:0.8,ambMax:40,poolP:160,poolB:140}:{particle:1,floaterMax:48,shake:1,bossBullets:1,ambMax:80,poolP:320,poolB:200},
+player:{hp:100,atk:10,speed:200,atkGap:0.4,critCh:0.10,critMult:1.5,pickupR:80,dashDur:0.2,dashDist:120,dashCd:2,invuln:0.5,hitRadius:10},
+comboTime:3.0,comboBase:10,comboPer:0.05,
+melee:{range:60,arc:Math.PI*2/3,baseKnock:42,hitFlash:0.1},
+xpBase:10,xpPerLevel:5,cardCount:3,
+skillSlots:{initial:3,total:4},
+enemy:{slime:{hp:20,atk:5,spd:60,type:'slime',xp:5,wave:1,gold:[2,4],spr:'slime',color:'#58d858'},bat:{hp:12,atk:4,spd:150,type:'bat',xp:4,wave:2,gold:[2,4],spr:'bat',color:'#8a4fd8'},skeleton:{hp:40,atk:10,spd:100,type:'skeleton',xp:10,wave:4,gold:[2,4],spr:'skeleton',color:'#e8e8f0',split:true},tiny:{hp:8,atk:4,spd:90,type:'tiny',xp:2,wave:99,gold:[1,2],spr:'tiny',color:'#b0b0bc'},mage:{hp:25,atk:8,spd:80,type:'mage',xp:8,wave:6,gold:[2,4],spr:'mage',color:'#4a9fdc'},bomber:{hp:18,atk:25,spd:160,type:'bomber',xp:6,wave:7,gold:[2,4],spr:'bomber',color:'#f0903a'},bull:{hp:60,atk:15,spd:70,type:'bull',xp:12,wave:8,gold:[2,4],spr:'bull',color:'#d05040'},shadow:{hp:35,atk:12,spd:110,type:'shadow',xp:10,wave:10,gold:[2,4],spr:'shadow',color:'#503070'},eliteChance:0.15,eliteWave:5,eliteHp:3,eliteAtk:2,eliteDrop:5},
+wave:{baseCount:5,perWave:2,warnTime:0.8,waveBanner:1.5,interAuto:8,bossEvery:5,corners:IS_TOUCH?[{x:40,y:40},{x:600,y:40},{x:40,y:320},{x:600,y:320}]:[{x:60,y:60},{x:900,y:60},{x:60,y:480},{x:900,y:480}]},
+boss:{expBase:100,expPer:20,gold:50,guard:{name:'回廊守卫',baseHp:500,perHp:100},lich:{name:'巫妖王',baseHp:400,perHp:100},dragon:{name:'熔岩巨龙',baseHp:600,perHp:100}},
+shop:{items:[{id:'potion',name:'治疗药水',price:20,desc:'回复 40% 生命值'},{id:'apple',name:'金苹果',price:35,desc:'最大生命 +10 并回满'},{id:'bomb',name:'炸弹',price:30,desc:'对全场敌人造成 50 伤害'},{id:'magnet',name:'磁铁',price:15,desc:'吸取全场经验与金币'},{id:'blade',name:'锐利之刃',price:40,desc:'攻击力 +8'},{id:'talisman',name:'咒符',price:25,desc:'立刻升 1 级（走三选一）'}],pick:4},
+drops:{heart:0.08,magnet:0.03,bomb:0.02},
+themes:[{name:'地牢',floor:['#3a2f22','#443726','#2f2619'],particle:'dust',pColor:'#8a7a5a'},{name:'雪原',floor:['#3a4356','#414b60','#354058'],particle:'snow',pColor:'#dfe8ff'},{name:'熔岩',floor:['#4a2a1c','#54301e','#3f2217'],particle:'spark',pColor:'#ff9a40'},{name:'虚空',floor:['#2c2240','#332853','#261b38'],particle:'star',pColor:'#c9b0ff'}]};
+const PAL={'.':null,K:'#141018',W:'#ffffff',Y:'#ffd76a',R:'#ff4a4a',B:'#0a0a0e',X:'#ffd76a',H:'#6b4226',S:'#f0c8a0',A:'#3f6bd8',D:'#cdd3de',T:'#5a4632',F:'#a34b2a',N:'#58d858',n:'#2ea52e',q:'#a8eef0',P:'#8a4fd8',p:'#5c2ba8',M:'#4a9fdc',m:'#2a5f9c',O:'#f0903a',o:'#c05a1e',V:'#d05040',v:'#8a2a22',Q:'#503070',b:'#241040',G:'#90a8c8',g:'#50586e',L:'#38c0a0',l:'#1e6858',C:'#f06a30',c:'#8a2e12',x:'#38c0ff',h:'#ff4a5a',z:'#ff6ae0'};
+const SPRITES={hero:['....HHHH....','...HHHHHH...','..HHHSSHHH..','...HSSSSH...','....SBBS....','...AASSSA...','..AAASSSAA..','...AASSSA...','....TTTT....','...TTTTTT...','..FF...FF...'],slime:['..NNNN..','.NNNNNN.','NNBBYYNN','NNNNNNNN','.nNNNNn.','..nnnn..'],bat:['PP..PP..PP','.PP.PP.PP.','PPPPPPPPPP','.PPBBPP.P.','PPBYYBPPPP','.PP..PP...'],skeleton:['...WWWW...','..WWBBW...','.WWWWWWWW.','...WWWW...','..WWWWWW..','.WW.WW.WW.','.W..WW..W.','....WW....','...W..W...'],tiny:['..WW..','.WYWW.','.WWWW.','.W.WW.','.WWWW.','..WW..'],mage:['..MMM..','.MMMMM.','MMBYYMM','MMMMMMM','.MMMM..','..mm...','.M..M..'],bomber:['..OOOO..','.OOBOO..','OOOBYYOO','OOOOOOOO','.OOOO...','..oo....','..o..o..'],bull:['VV..VV..VV..','V.VV.VV.V...','VVVVVVVVVVVV','VVYYYYYYVVVV','VVVVVVVVVVVV','.VVVVVVVVVV.','.oooooooooo.'],shadow:['...QQ...','..QQQQ..','..QBQQ..','..QQQQ..','...QQ...','..Q..Q..','..Q..Q..'],boss_guard:['....GGGGGG....','...GGGGGGGG...','..GGGGGGGGGG..','..GGBBBBBGG...','.GGGBBBBBBGG..','.GGGBBBBBBGG..','.GGGGGGGGGGGG.','..GGGGGGGGGG..','..GGGgGGgGGG..','..GggGGGGggG..','.gg..GGGG..gg.','....G....G....','...GG....GG...'],boss_lich:['...LLLLLL...','..LLLLLLLL..','..LLBBBBLL..','..LLLLBBLL..','..LLBBBBLL..','.LLLLLLLLLL.','.LL.LLLL.LL.','.Ll.LLLL.lL.','....LLLL....','...LL..LL...'],boss_dragon:['......CC......','.....CCCC.....','....CCCCCC....','...CCCCCCCC...','...CCBBBBCC...','...CCBBBBCC...','..CCCCCCCCCC..','..CCCCCCCCCC..','.CCCCCCCCCCCC.','.Cc.CCCCCC.Cc.','...C.CCCC.C...','...C.CC..CC...'],xp_gem:['..xx..','.xxxx.','.xqxx.','.xxxq.','.xxxx.','..xx..'],coin_gold:['..XX..','.XXXX.','XKKKKX','XKKKKX','.XXXX.','..XX..'],heart_drop:['.h.h.','hhhhh','.hhh.','..h..'],magnet_drop:['z..z.','.z.z.','..z..','..z..','..z..'],bomb_drop:['...B...','..BBB..','.BRRRB.','.BRCRB.','.BRRRB.','..BBB..','...B...']};
+const _sprCache={};
+function getSprite(name,scale){const key=name+'x'+scale;if(_sprCache[key])return _sprCache[key];const rows=SPRITES[name];const h=rows.length,w=rows[0].length;const mk=(white)=>{const c=document.createElement('canvas');c.width=w*scale;c.height=h*scale;const ctx=c.getContext('2d');for(let y=0;y<h;y++){for(let x=0;x<w;x++){const col=PAL[rows[y][x]];if(!col)continue;ctx.fillStyle=white?'#ffffff':col;ctx.fillRect(x*scale,y*scale,scale,scale);}}return c;};const out={normal:mk(false),white:mk(true),cx:w*scale/2,cy:h*scale/2};_sprCache[key]=out;return out;}
+function drawSprite(ctx,name,x,y,scale,flash,flip){const s=getSprite(name,scale);const img=flash?s.white:s.normal;if(flip){ctx.save();ctx.translate(x,y);ctx.scale(-1,1);ctx.drawImage(img,-s.cx,-s.cy);ctx.restore();}else{ctx.drawImage(img,x-s.cx,y-s.cy);}}
+const AudioSys={ctx:null,master:null,ready:false,init(){if(this.ready)return;try{const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=0.5;this.master.connect(this.ctx.destination);this.ready=true;}catch(e){}},resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},tone(freq,dur,type,vol,slideTo,delay){if(!this.ready)return;const t0=this.ctx.currentTime+(delay||0);const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type||'square';o.frequency.setValueAtTime(freq,t0);if(slideTo)o.frequency.exponentialRampToValueAtTime(Math.max(20,slideTo),t0+dur);g.gain.setValueAtTime(vol||0.2,t0);g.gain.exponentialRampToValueAtTime(0.001,t0+dur);o.connect(g);g.connect(this.master);o.start(t0);o.stop(t0+dur+0.02);},noise(dur,vol,filterFreq,delay){if(!this.ready)return;const t0=this.ctx.currentTime+(delay||0);const n=this.ctx.sampleRate*dur;const buf=this.ctx.createBuffer(1,n,this.ctx.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const src=this.ctx.createBufferSource();src.buffer=buf;const f=this.ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=filterFreq||1200;const g=this.ctx.createGain();g.gain.setValueAtTime(vol||0.25,t0);g.gain.exponentialRampToValueAtTime(0.001,t0+dur);src.connect(f);f.connect(g);g.connect(this.master);src.start(t0);},play(name,p){switch(name){case 'hit':this.tone(220,.08,'square',.16,120);this.noise(.05,.08,2000);break;case 'crit':this.tone(340,.1,'square',.2,90);this.noise(.06,.12,2600);break;case 'enemyDie':this.noise(.22,.25,800);this.tone(160,.18,'sawtooth',.1,40);break;case 'split':this.noise(.14,.2,1000);this.tone(260,.12,'sawtooth',.08,120);break;case 'hurt':this.tone(180,.16,'sawtooth',.22,60);this.noise(.1,.2,900);break;case 'levelUp':[523,659,784,1046].forEach((f,i)=>this.tone(f,.12,'square',.15,null,i*.08));break;case 'card':[698,1046].forEach((f,i)=>this.tone(f,.09,'triangle',.18,null,i*.06));break;case 'coin':[988,1318].forEach((f,i)=>this.tone(f,.06,'triangle',.15,null,i*.04));break;case 'combo':{const lv=p||1;this.tone(300+lv*50,.11,'square',.17,300+lv*85);break;}case 'boss':this.noise(.5,.3,400);[110,146,196,262].forEach((f,i)=>this.tone(f,.25,'sawtooth',.12,null,i*.14));break;case 'shopBuy':this.tone(880,.1,'triangle',.18,null,.05);this.tone(1320,.15,'triangle',.18,null,.12);break;case 'nope':this.tone(150,.12,'square',.13,90);break;case 'skill':this.tone(392,.12,'square',.14,196);this.tone(523,.12,'sawtooth',.08,null,.06);break;case 'dash':this.noise(.12,.12,1600);break;case 'pickup':this.tone(1100,.06,'triangle',.11);break;case 'swing':this.noise(.05,.06,3000);this.tone(500,.05,'triangle',.05,300);break;case 'thunder':this.noise(.4,.35,700);this.tone(80,.4,'sawtooth',.26,40);break;case 'fire':this.noise(.18,.2,900);this.tone(220,.18,'sawtooth',.1,60);break;case 'explode':this.noise(.3,.35,600);this.tone(120,.3,'sawtooth',.18,30);break;case 'freeze':this.tone(1200,.2,'triangle',.13,2400);break;case 'heal':[523,659,784].forEach((f,i)=>this.tone(f,.14,'triangle',.16,null,i*.07));break;case 'shield':[392,523,659].forEach((f,i)=>this.tone(f,.12,'sine',.18,null,i*.05));break;case 'clone':[784,523].forEach((f,i)=>this.tone(f,.1,'square',.12,null,i*.06));break;case 'whirl':this.tone(300,.2,'sawtooth',.09,600);break;}}};
