@@ -9,13 +9,33 @@
 <meta name="apple-mobile-web-app-title" content="像素勇者">
 <title>像素勇者：无尽回廊 (Pixel Hero: Endless Halls)</title>
 <style>
+/* ==================== CSS：自适应布局 + DOM 触摸控制层（叠于 canvas 上方） ==================== */
 *{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;background:#0a0a12;overflow:hidden;touch-action:none;overscroll-behavior:none;}
-body{display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace;position:fixed;left:0;top:0;right:0;bottom:0;}
-#game{image-rendering:pixelated;image-rendering:crisp-edges;background:#14101c;box-shadow:0 0 0 2px #000,0 0 40px rgba(0,0,0,.8);touch-action:none;}
-.overlay{position:fixed;left:0;top:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(6,6,12,.82);z-index:20;text-align:center;color:#fff;touch-action:manipulation;}
+body{
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Courier New",monospace;
+  position:fixed;left:0;top:0;right:0;bottom:0;
+}
+#game{
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  background:#14101c;
+  box-shadow:0 0 0 2px #000,0 0 40px rgba(0,0,0,.8);
+  touch-action:none;
+}
+/* ---------- 通用浮层面板（标题/选卡/商店/休整/暂停/死亡） ---------- */
+.overlay{
+  position:fixed;left:0;top:0;width:100%;height:100%;
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  background:rgba(6,6,12,.82);z-index:20;text-align:center;color:#fff;
+  touch-action:manipulation;
+}
 .overlay.show{display:flex;}
-.panel{background:rgba(20,16,30,.95);border:3px solid #ffd76a;border-radius:10px;padding:22px 26px;box-shadow:0 0 30px rgba(255,180,60,.25);max-width:92vw;width:auto;}
+.panel{
+  background:rgba(20,16,30,.95);border:3px solid #ffd76a;border-radius:10px;
+  padding:22px 26px;box-shadow:0 0 30px rgba(255,180,60,.25);
+  max-width:92vw;width:auto;
+}
 .title-logo{font-size:44px;letter-spacing:4px;color:#ffd76a;text-shadow:3px 3px 0 #7a3b12,0 0 18px #ff9d00;}
 .title-sub{font-size:13px;color:#c9b98a;margin-top:6px;letter-spacing:3px;}
 .title-hint{font-size:17px;color:#fff;margin-top:24px;animation:blink 1.2s infinite;}
@@ -26,19 +46,31 @@ body{display:flex;align-items:center;justify-content:center;font-family:"Courier
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 .overlay h2{font-size:24px;color:#ffd76a;letter-spacing:3px;text-shadow:2px 2px 0 #000;}
 .cards{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
-.card{width:200px;min-height:200px;background:#1c1730;border:3px solid #4a3f6e;border-radius:8px;padding:10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;touch-action:manipulation;}
+.card{
+  width:200px;min-height:200px;background:#1c1730;border:3px solid #4a3f6e;border-radius:8px;
+  padding:10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;
+  touch-action:manipulation;
+}
 .card .icon{width:52px;height:52px;font-size:30px;}
 .card .cname{font-size:16px;color:#ffd76a;margin-top:6px;}
 .card .cdesc{font-size:12px;color:#c9c4e0;margin-top:6px;line-height:1.5;}
 .card .cstk{font-size:11px;color:#8f8aa7;margin-top:auto;padding-top:6px;}
+.card .cnum{font-size:10px;color:#766;margin-top:2px;}
 .shop-grid{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
-.sitem{width:150px;min-height:120px;background:#1c1730;border:3px solid #4a3f6e;border-radius:8px;padding:10px;cursor:pointer;display:block;text-align:center;touch-action:manipulation;}
+.sitem{
+  width:150px;min-height:120px;background:#1c1730;border:3px solid #4a3f6e;border-radius:8px;
+  padding:10px;cursor:pointer;display:block;text-align:center;touch-action:manipulation;
+}
 .sitem.disabled{opacity:.45;pointer-events:none;}
 .sitem .sname{font-size:15px;color:#ffe9a8;}
 .sitem .sdesc{font-size:11px;color:#c9c4e0;margin-top:6px;line-height:1.4;}
 .sitem .sprice{font-size:13px;color:#ffd76a;margin-top:8px;}
 .inter-tip{font-size:20px;color:#8fd0ff;letter-spacing:2px;margin-top:14px;}
-.btn{margin-top:14px;padding:12px 34px;font-size:17px;font-family:inherit;letter-spacing:1px;background:#e08a2a;color:#fff;border:3px solid #ffd76a;border-radius:8px;cursor:pointer;font-weight:bold;min-height:44px;touch-action:manipulation;}
+.btn{
+  margin-top:14px;padding:12px 34px;font-size:17px;font-family:inherit;letter-spacing:1px;
+  background:#e08a2a;color:#fff;border:3px solid #ffd76a;border-radius:8px;cursor:pointer;font-weight:bold;
+  min-height:44px;touch-action:manipulation;
+}
 .btn.small{padding:10px 20px;font-size:13px;min-height:44px;}
 .btn.ghost{background:transparent;border-color:#556;color:#aab;}
 .stat-line{font-size:15px;color:#e8e4f4;margin:4px 0;}
@@ -46,56 +78,2288 @@ body{display:flex;align-items:center;justify-content:center;font-family:"Courier
 .dead-title{font-size:34px;color:#ff4a4a;letter-spacing:6px;text-shadow:3px 3px 0 #4a0000;}
 #rec-newest{font-size:12px;margin-top:6px;}
 .pause-tip{font-size:18px;color:#dfe;letter-spacing:3px;}
-.rotate{z-index:60;background:#0a0a12;font-size:22px;letter-spacing:4px;color:#ffd76a;}
+/* ---------- 竖屏旋转遮罩（仅触屏模式生效） ---------- */
+.rotate{ z-index:60;background:#0a0a12;font-size:22px;letter-spacing:4px;color:#ffd76a; }
+/* ---------- 触摸控制层（DOM 固定物理尺寸，仅触屏显示；pointer-events 穿透到 canvas） ---------- */
 #touch-ctl{position:fixed;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:10;display:none;}
-.btn-touch{position:fixed;pointer-events:auto;display:flex;align-items:center;justify-content:center;border-radius:50%;border:3px solid rgba(255,215,106,.75);background:radial-gradient(circle at 35% 30%, rgba(120,100,60,.55), rgba(20,16,30,.66) 75%);color:#fff;font-size:30px;text-shadow:0 0 6px #000;touch-action:none;}
+.btn-touch{
+  position:fixed;pointer-events:auto;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;border:3px solid rgba(255,215,106,.75);
+  background:radial-gradient(circle at 35% 30%, rgba(120,100,60,.55), rgba(20,16,30,.66) 75%);
+  color:#fff;font-size:30px;text-shadow:0 0 6px #000;touch-action:none;
+}
 .btn-touch:active{filter:brightness(1.4);}
 #btn-attack{width:88px;height:88px;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));font-size:40px;}
 #btn-dash{width:64px;height:64px;right:116px;bottom:calc(52px + env(safe-area-inset-bottom));font-size:22px;}
 #skill-row{position:fixed;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px;pointer-events:none;}
-.btn-skill{position:relative;width:64px;height:64px;pointer-events:auto;border-radius:12px;overflow:hidden;background:rgba(20,16,30,.72);border:3px solid rgba(255,215,106,.6);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;touch-action:none;}
+.btn-skill{
+  position:relative;width:64px;height:64px;pointer-events:auto;border-radius:12px;overflow:hidden;
+  background:rgba(20,16,30,.72);border:3px solid rgba(255,215,106,.6);color:#fff;font-size:26px;
+  display:flex;align-items:center;justify-content:center;touch-action:none;
+}
 .btn-skill.locked{opacity:.45;border-color:#555;}
-.btn-skill .sk-cd{position:absolute;left:0;top:0;width:100%;height:0%;background:rgba(8,8,20,.75);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.btn-skill .sk-cd{
+  position:absolute;left:0;top:0;width:100%;height:0%;background:rgba(8,8,20,.75);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
 .btn-skill .sk-cd b{font-size:14px;color:#ffd76a;margin-top:26px;}
-#btn-pause{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;width:46px;height:46px;pointer-events:auto;border-radius:10px;background:rgba(10,10,20,.55);border:2px solid #556;color:#cdd;font-size:20px;display:flex;align-items:center;justify-content:center;}
+#btn-pause{
+  position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;width:46px;height:46px;pointer-events:auto;
+  border-radius:10px;background:rgba(10,10,20,.55);border:2px solid #556;color:#cdd;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-<div id="lay-rotate" class="overlay rotate"><div>请旋转手机</div><div style="font-size:44px;margin-top:10px;">📱↻</div></div>
-<div id="lay-title" class="overlay"><div class="panel"><div class="title-logo">像素勇者</div><div class="title-sub">◆ 无尽回廊 · PIXEL HERO ◆</div><div class="title-hint" id="title-hint">按任意键 / 点击开始</div><div class="title-best">最高纪录：第 <span class="best-rec" id="best-wave">0</span> 波</div><div class="title-keyinfo" id="title-keys">WASD / 方向键 移动　|　J / 左键 攻击　|　K / 右键 冲刺<br>1~4 技能　|　空格 确认　|　P 暂停　|　R 重开</div></div></div>
-<div id="lay-levelup" class="overlay"><h2>— 升级！选择强化 —</h2><div class="cards" id="cards-box"></div></div>
-<div id="lay-shop" class="overlay"><h2>— 商店 —</h2><div style="font-size:15px;color:#ffd76a;margin-top:6px;" id="shop-gold"></div><div class="shop-grid" id="shop-box"></div><button class="btn small ghost" id="shop-close">离开商店</button></div>
-<div id="lay-inter" class="overlay"><h2 id="inter-title">— 波次结束 —</h2><div class="inter-tip" id="inter-prev"></div><div style="font-size:12px;color:#8a8aa7;margin-top:6px;">8 秒无操作将自动开始下一波</div><button class="btn" id="inter-go">开始下一波</button><button class="btn small ghost" id="inter-shop">进入商店（休整计时暂停）</button></div>
-<div id="lay-pause" class="overlay"><div class="panel"><div class="pause-tip">— 已暂停 —</div><button class="btn small" id="resume-btn" style="margin-top:16px;">继续游戏</button><div style="font-size:12px;color:#777;margin-top:10px;">按 P / 点击画面 也可继续</div></div></div>
-<div id="lay-dead" class="overlay"><div class="panel"><div class="dead-title">— 勇者倒下 —</div><div style="margin-top:16px" id="dead-stats"></div><div id="rec-newest"></div><button class="btn" id="dead-restart">重新挑战</button></div></div>
+
+<!-- 竖屏旋转遮罩（触屏模式） -->
+<div id="lay-rotate" class="overlay rotate">
+  <div>请旋转手机</div>
+  <div style="font-size:44px;margin-top:10px;">📱↻</div>
+</div>
+
+<!-- ============ DOM 浮层：标题 / 选卡 / 商店 / 休整 / 暂停 / 死亡 ============ -->
+<div id="lay-title" class="overlay">
+  <div class="panel">
+    <div class="title-logo">像素勇者</div>
+    <div class="title-sub">◆ 无尽回廊 · PIXEL HERO ◆</div>
+    <div class="title-hint" id="title-hint">按任意键 / 点击开始</div>
+    <div class="title-best">最高纪录：第 <span class="best-rec" id="best-wave">0</span> 波</div>
+    <div class="title-keyinfo" id="title-keys">
+      WASD / 方向键 移动　|　J / 左键 攻击　|　K / 右键 冲刺<br>
+      1~4 技能　|　空格 确认　|　P 暂停　|　R 重开
+    </div>
+  </div>
+</div>
+
+<div id="lay-levelup" class="overlay">
+  <h2>— 升级！选择强化 —</h2>
+  <div class="cards" id="cards-box"></div>
+</div>
+
+<div id="lay-shop" class="overlay">
+  <h2>— 商店 —</h2>
+  <div style="font-size:15px;color:#ffd76a;margin-top:6px;" id="shop-gold"></div>
+  <div class="shop-grid" id="shop-box"></div>
+  <button class="btn small ghost" id="shop-close">离开商店</button>
+</div>
+
+<div id="lay-inter" class="overlay">
+  <h2 id="inter-title">— 波次结束 —</h2>
+  <div class="inter-tip" id="inter-prev"></div>
+  <div style="font-size:12px;color:#8a8aa7;margin-top:6px;">8 秒无操作将自动开始下一波</div>
+  <button class="btn" id="inter-go">开始下一波</button>
+  <button class="btn small ghost" id="inter-shop">进入商店（休整计时暂停）</button>
+</div>
+
+<div id="lay-pause" class="overlay">
+  <div class="panel">
+    <div class="pause-tip">— 已暂停 —</div>
+    <button class="btn small" id="resume-btn" style="margin-top:16px;">继续游戏</button>
+    <div style="font-size:12px;color:#777;margin-top:10px;">按 P / 点击画面 也可继续</div>
+  </div>
+</div>
+
+<div id="lay-dead" class="overlay">
+  <div class="panel">
+    <div class="dead-title">— 勇者倒下 —</div>
+    <div style="margin-top:16px" id="dead-stats"></div>
+    <div id="rec-newest"></div>
+    <button class="btn" id="dead-restart">重新挑战</button>
+  </div>
+</div>
+
+<!-- ============ 触摸控制层（仅触屏模式显示；摇杆画在画布上，按钮用 DOM 固定物理尺寸） ============ -->
 <div id="touch-ctl">
-<div id="btn-attack" class="btn-touch">⚔</div><div id="btn-dash" class="btn-touch">💨</div><div id="btn-pause">⏸</div>
-<div id="skill-row">
-<div class="btn-skill" data-skill="0"><span id="sk-ico-0" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-0"><b></b></span></div>
-<div class="btn-skill" data-skill="1"><span id="sk-ico-1" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-1"><b></b></span></div>
-<div class="btn-skill" data-skill="2"><span id="sk-ico-2" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-2"><b></b></span></div>
-<div class="btn-skill locked" data-skill="3"><span id="sk-ico-3" style="pointer-events:none;">锁</span><span class="sk-cd" id="sk-cd-3"><b></b></span></div>
-</div></div>
+  <div id="btn-attack" class="btn-touch">⚔</div>
+  <div id="btn-dash" class="btn-touch">💨</div>
+  <div id="btn-pause">⏸</div>
+  <div id="skill-row">
+    <div class="btn-skill" data-skill="0"><span id="sk-ico-0" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-0"><b></b></span></div>
+    <div class="btn-skill" data-skill="1"><span id="sk-ico-1" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-1"><b></b></span></div>
+    <div class="btn-skill" data-skill="2"><span id="sk-ico-2" style="pointer-events:none;"></span><span class="sk-cd" id="sk-cd-2"><b></b></span></div>
+    <div class="btn-skill locked" data-skill="3"><span id="sk-ico-3" style="pointer-events:none;">锁</span><span class="sk-cd" id="sk-cd-3"><b></b></span></div>
+  </div>
+</div>
+
 <script>
-/* 像素勇者：无尽回廊 — 桌面/手机统一版（单文件零依赖，双端自动适配） */
-const IS_TOUCH=('ontouchstart' in window)||(navigator.maxTouchPoints>0);
-const CONFIG={W:IS_TOUCH?640:960,H:IS_TOUCH?360:540,FPS:60,STEP:1/60,platform:IS_TOUCH?'mobile':'desktop',
-perf:IS_TOUCH?{particle:0.5,floaterMax:30,shake:0.5,bossBullets:0.8,ambMax:40,poolP:160,poolB:140}:{particle:1,floaterMax:48,shake:1,bossBullets:1,ambMax:80,poolP:320,poolB:200},
-player:{hp:100,atk:10,speed:200,atkGap:0.4,critCh:0.10,critMult:1.5,pickupR:80,dashDur:0.2,dashDist:120,dashCd:2,invuln:0.5,hitRadius:10},
-comboTime:3.0,comboBase:10,comboPer:0.05,
-melee:{range:60,arc:Math.PI*2/3,baseKnock:42,hitFlash:0.1},
-xpBase:10,xpPerLevel:5,cardCount:3,
-skillSlots:{initial:3,total:4},
-enemy:{slime:{hp:20,atk:5,spd:60,type:'slime',xp:5,wave:1,gold:[2,4],spr:'slime',color:'#58d858'},bat:{hp:12,atk:4,spd:150,type:'bat',xp:4,wave:2,gold:[2,4],spr:'bat',color:'#8a4fd8'},skeleton:{hp:40,atk:10,spd:100,type:'skeleton',xp:10,wave:4,gold:[2,4],spr:'skeleton',color:'#e8e8f0',split:true},tiny:{hp:8,atk:4,spd:90,type:'tiny',xp:2,wave:99,gold:[1,2],spr:'tiny',color:'#b0b0bc'},mage:{hp:25,atk:8,spd:80,type:'mage',xp:8,wave:6,gold:[2,4],spr:'mage',color:'#4a9fdc'},bomber:{hp:18,atk:25,spd:160,type:'bomber',xp:6,wave:7,gold:[2,4],spr:'bomber',color:'#f0903a'},bull:{hp:60,atk:15,spd:70,type:'bull',xp:12,wave:8,gold:[2,4],spr:'bull',color:'#d05040'},shadow:{hp:35,atk:12,spd:110,type:'shadow',xp:10,wave:10,gold:[2,4],spr:'shadow',color:'#503070'},eliteChance:0.15,eliteWave:5,eliteHp:3,eliteAtk:2,eliteDrop:5},
-wave:{baseCount:5,perWave:2,warnTime:0.8,waveBanner:1.5,interAuto:8,bossEvery:5,corners:IS_TOUCH?[{x:40,y:40},{x:600,y:40},{x:40,y:320},{x:600,y:320}]:[{x:60,y:60},{x:900,y:60},{x:60,y:480},{x:900,y:480}]},
-boss:{expBase:100,expPer:20,gold:50,guard:{name:'回廊守卫',baseHp:500,perHp:100},lich:{name:'巫妖王',baseHp:400,perHp:100},dragon:{name:'熔岩巨龙',baseHp:600,perHp:100}},
-shop:{items:[{id:'potion',name:'治疗药水',price:20,desc:'回复 40% 生命值'},{id:'apple',name:'金苹果',price:35,desc:'最大生命 +10 并回满'},{id:'bomb',name:'炸弹',price:30,desc:'对全场敌人造成 50 伤害'},{id:'magnet',name:'磁铁',price:15,desc:'吸取全场经验与金币'},{id:'blade',name:'锐利之刃',price:40,desc:'攻击力 +8'},{id:'talisman',name:'咒符',price:25,desc:'立刻升 1 级（走三选一）'}],pick:4},
-drops:{heart:0.08,magnet:0.03,bomb:0.02},
-themes:[{name:'地牢',floor:['#3a2f22','#443726','#2f2619'],particle:'dust',pColor:'#8a7a5a'},{name:'雪原',floor:['#3a4356','#414b60','#354058'],particle:'snow',pColor:'#dfe8ff'},{name:'熔岩',floor:['#4a2a1c','#54301e','#3f2217'],particle:'spark',pColor:'#ff9a40'},{name:'虚空',floor:['#2c2240','#332853','#261b38'],particle:'star',pColor:'#c9b0ff'}]};
-const PAL={'.':null,K:'#141018',W:'#ffffff',Y:'#ffd76a',R:'#ff4a4a',B:'#0a0a0e',X:'#ffd76a',H:'#6b4226',S:'#f0c8a0',A:'#3f6bd8',D:'#cdd3de',T:'#5a4632',F:'#a34b2a',N:'#58d858',n:'#2ea52e',q:'#a8eef0',P:'#8a4fd8',p:'#5c2ba8',M:'#4a9fdc',m:'#2a5f9c',O:'#f0903a',o:'#c05a1e',V:'#d05040',v:'#8a2a22',Q:'#503070',b:'#241040',G:'#90a8c8',g:'#50586e',L:'#38c0a0',l:'#1e6858',C:'#f06a30',c:'#8a2e12',x:'#38c0ff',h:'#ff4a5a',z:'#ff6ae0'};
-const SPRITES={hero:['....HHHH....','...HHHHHH...','..HHHSSHHH..','...HSSSSH...','....SBBS....','...AASSSA...','..AAASSSAA..','...AASSSA...','....TTTT....','...TTTTTT...','..FF...FF...'],slime:['..NNNN..','.NNNNNN.','NNBBYYNN','NNNNNNNN','.nNNNNn.','..nnnn..'],bat:['PP..PP..PP','.PP.PP.PP.','PPPPPPPPPP','.PPBBPP.P.','PPBYYBPPPP','.PP..PP...'],skeleton:['...WWWW...','..WWBBW...','.WWWWWWWW.','...WWWW...','..WWWWWW..','.WW.WW.WW.','.W..WW..W.','....WW....','...W..W...'],tiny:['..WW..','.WYWW.','.WWWW.','.W.WW.','.WWWW.','..WW..'],mage:['..MMM..','.MMMMM.','MMBYYMM','MMMMMMM','.MMMM..','..mm...','.M..M..'],bomber:['..OOOO..','.OOBOO..','OOOBYYOO','OOOOOOOO','.OOOO...','..oo....','..o..o..'],bull:['VV..VV..VV..','V.VV.VV.V...','VVVVVVVVVVVV','VVYYYYYYVVVV','VVVVVVVVVVVV','.VVVVVVVVVV.','.oooooooooo.'],shadow:['...QQ...','..QQQQ..','..QBQQ..','..QQQQ..','...QQ...','..Q..Q..','..Q..Q..'],boss_guard:['....GGGGGG....','...GGGGGGGG...','..GGGGGGGGGG..','..GGBBBBBGG...','.GGGBBBBBBGG..','.GGGBBBBBBGG..','.GGGGGGGGGGGG.','..GGGGGGGGGG..','..GGGgGGgGGG..','..GggGGGGggG..','.gg..GGGG..gg.','....G....G....','...GG....GG...'],boss_lich:['...LLLLLL...','..LLLLLLLL..','..LLBBBBLL..','..LLLLBBLL..','..LLBBBBLL..','.LLLLLLLLLL.','.LL.LLLL.LL.','.Ll.LLLL.lL.','....LLLL....','...LL..LL...'],boss_dragon:['......CC......','.....CCCC.....','....CCCCCC....','...CCCCCCCC...','...CCBBBBCC...','...CCBBBBCC...','..CCCCCCCCCC..','..CCCCCCCCCC..','.CCCCCCCCCCCC.','.Cc.CCCCCC.Cc.','...C.CCCC.C...','...C.CC..CC...'],xp_gem:['..xx..','.xxxx.','.xqxx.','.xxxq.','.xxxx.','..xx..'],coin_gold:['..XX..','.XXXX.','XKKKKX','XKKKKX','.XXXX.','..XX..'],heart_drop:['.h.h.','hhhhh','.hhh.','..h..'],magnet_drop:['z..z.','.z.z.','..z..','..z..','..z..'],bomb_drop:['...B...','..BBB..','.BRRRB.','.BRCRB.','.BRRRB.','..BBB..','...B...']};
-const _sprCache={};
-function getSprite(name,scale){const key=name+'x'+scale;if(_sprCache[key])return _sprCache[key];const rows=SPRITES[name];const h=rows.length,w=rows[0].length;const mk=(white)=>{const c=document.createElement('canvas');c.width=w*scale;c.height=h*scale;const ctx=c.getContext('2d');for(let y=0;y<h;y++){for(let x=0;x<w;x++){const col=PAL[rows[y][x]];if(!col)continue;ctx.fillStyle=white?'#ffffff':col;ctx.fillRect(x*scale,y*scale,scale,scale);}}return c;};const out={normal:mk(false),white:mk(true),cx:w*scale/2,cy:h*scale/2};_sprCache[key]=out;return out;}
-function drawSprite(ctx,name,x,y,scale,flash,flip){const s=getSprite(name,scale);const img=flash?s.white:s.normal;if(flip){ctx.save();ctx.translate(x,y);ctx.scale(-1,1);ctx.drawImage(img,-s.cx,-s.cy);ctx.restore();}else{ctx.drawImage(img,x-s.cx,y-s.cy);}}
-const AudioSys={ctx:null,master:null,ready:false,init(){if(this.ready)return;try{const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();this.master=this.ctx.createGain();this.master.gain.value=0.5;this.master.connect(this.ctx.destination);this.ready=true;}catch(e){}},resume(){if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},tone(freq,dur,type,vol,slideTo,delay){if(!this.ready)return;const t0=this.ctx.currentTime+(delay||0);const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type||'square';o.frequency.setValueAtTime(freq,t0);if(slideTo)o.frequency.exponentialRampToValueAtTime(Math.max(20,slideTo),t0+dur);g.gain.setValueAtTime(vol||0.2,t0);g.gain.exponentialRampToValueAtTime(0.001,t0+dur);o.connect(g);g.connect(this.master);o.start(t0);o.stop(t0+dur+0.02);},noise(dur,vol,filterFreq,delay){if(!this.ready)return;const t0=this.ctx.currentTime+(delay||0);const n=this.ctx.sampleRate*dur;const buf=this.ctx.createBuffer(1,n,this.ctx.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const src=this.ctx.createBufferSource();src.buffer=buf;const f=this.ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=filterFreq||1200;const g=this.ctx.createGain();g.gain.setValueAtTime(vol||0.25,t0);g.gain.exponentialRampToValueAtTime(0.001,t0+dur);src.connect(f);f.connect(g);g.connect(this.master);src.start(t0);},play(name,p){switch(name){case 'hit':this.tone(220,.08,'square',.16,120);this.noise(.05,.08,2000);break;case 'crit':this.tone(340,.1,'square',.2,90);this.noise(.06,.12,2600);break;case 'enemyDie':this.noise(.22,.25,800);this.tone(160,.18,'sawtooth',.1,40);break;case 'split':this.noise(.14,.2,1000);this.tone(260,.12,'sawtooth',.08,120);break;case 'hurt':this.tone(180,.16,'sawtooth',.22,60);this.noise(.1,.2,900);break;case 'levelUp':[523,659,784,1046].forEach((f,i)=>this.tone(f,.12,'square',.15,null,i*.08));break;case 'card':[698,1046].forEach((f,i)=>this.tone(f,.09,'triangle',.18,null,i*.06));break;case 'coin':[988,1318].forEach((f,i)=>this.tone(f,.06,'triangle',.15,null,i*.04));break;case 'combo':{const lv=p||1;this.tone(300+lv*50,.11,'square',.17,300+lv*85);break;}case 'boss':this.noise(.5,.3,400);[110,146,196,262].forEach((f,i)=>this.tone(f,.25,'sawtooth',.12,null,i*.14));break;case 'shopBuy':this.tone(880,.1,'triangle',.18,null,.05);this.tone(1320,.15,'triangle',.18,null,.12);break;case 'nope':this.tone(150,.12,'square',.13,90);break;case 'skill':this.tone(392,.12,'square',.14,196);this.tone(523,.12,'sawtooth',.08,null,.06);break;case 'dash':this.noise(.12,.12,1600);break;case 'pickup':this.tone(1100,.06,'triangle',.11);break;case 'swing':this.noise(.05,.06,3000);this.tone(500,.05,'triangle',.05,300);break;case 'thunder':this.noise(.4,.35,700);this.tone(80,.4,'sawtooth',.26,40);break;case 'fire':this.noise(.18,.2,900);this.tone(220,.18,'sawtooth',.1,60);break;case 'explode':this.noise(.3,.35,600);this.tone(120,.3,'sawtooth',.18,30);break;case 'freeze':this.tone(1200,.2,'triangle',.13,2400);break;case 'heal':[523,659,784].forEach((f,i)=>this.tone(f,.14,'triangle',.16,null,i*.07));break;case 'shield':[392,523,659].forEach((f,i)=>this.tone(f,.12,'sine',.18,null,i*.05));break;case 'clone':[784,523].forEach((f,i)=>this.tone(f,.1,'square',.12,null,i*.06));break;case 'whirl':this.tone(300,.2,'sawtooth',.09,600);break;}}};
+/* ============================================================
+ * 像素勇者：无尽回廊 — 桌面/手机统一版（单文件，零依赖，双端自动适配）
+ * 触屏设备 → 移动模式：640x360、虚拟摇杆+DOM 触摸钮、性能减半、竖屏提示
+ * 键鼠设备 → 桌面模式：960x540、WASD+鼠标、画布技能栏、全特效
+ * 玩法与数值两模式完全一致
+ * 模块顺序：CONFIG / PIXEL_ART / AUDIO / INPUT / ENTITIES / SKILLS
+ *          / WAVES / UPGRADES / SHOP / COMBO / UI / RENDER / GAME / BOSS / 装配
+ * ============================================================ */
+
+/* ---- 平台检测：触屏为主 → 移动模式，否则桌面模式 ---- */
+const IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+/* ==================== CONFIG：全部游戏数值常量（与开发文档表格一一对应） ==================== */
+const CONFIG = {
+  W: IS_TOUCH ? 640 : 960,
+  H: IS_TOUCH ? 360 : 540,
+  FPS: 60, STEP: 1/60,
+  platform: IS_TOUCH ? 'mobile' : 'desktop',
+  /* ---- 性能参数（触屏减负：粒子减半/飘字30/震屏减半/Boss弹幕-20%） ---- */
+  perf: IS_TOUCH
+    ? { particle:0.5, floaterMax:30, shake:0.5, bossBullets:0.8, ambMax:40, poolP:160, poolB:140 }
+    : { particle:1,   floaterMax:48, shake:1,   bossBullets:1,   ambMax:80, poolP:320, poolB:200 },
+  /* ---- 2.0 玩家初始属性 ---- */
+  player: {
+    hp: 100, atk: 10, speed: 200, atkGap: 0.4,
+    critCh: 0.10, critMult: 1.5, pickupR: 80,
+    dashDur: 0.2, dashDist: 120, dashCd: 2, invuln: 0.5,
+    hitRadius: 10,
+  },
+  /* ---- 2.1/2.2 战斗与连击 ---- */
+  comboTime: 3.0, comboBase: 10, comboPer: 0.05,
+  melee: { range: 60, arc: Math.PI * 2 / 3, baseKnock: 42, hitFlash: 0.1 },
+  /* ---- 2.3 升级 ---- */
+  xpBase: 10, xpPerLevel: 5, cardCount: 3,
+  /* ---- 2.4 技能 ---- */
+  skillSlots: { initial: 3, total: 4 },
+  /* ---- 2.5 敌人 ---- */
+  enemy: {
+    slime:    { hp:20, atk:5,  spd:60,  type:'slime',    xp:5,  wave:1,  gold:[2,4], spr:'slime', color:'#58d858' },
+    bat:      { hp:12, atk:4,  spd:150, type:'bat',      xp:4,  wave:2,  gold:[2,4], spr:'bat',   color:'#8a4fd8' },
+    skeleton: { hp:40, atk:10, spd:100, type:'skeleton', xp:10, wave:4,  gold:[2,4], spr:'skeleton', color:'#e8e8f0', split:true },
+    tiny:     { hp:8,  atk:4,  spd:90,  type:'tiny',     xp:2,  wave:99, gold:[1,2], spr:'tiny',  color:'#b0b0bc' },
+    mage:     { hp:25, atk:8,  spd:80,  type:'mage',     xp:8,  wave:6,  gold:[2,4], spr:'mage',  color:'#4a9fdc' },
+    bomber:   { hp:18, atk:25, spd:160, type:'bomber',   xp:6,  wave:7,  gold:[2,4], spr:'bomber',color:'#f0903a' },
+    bull:     { hp:60, atk:15, spd:70,  type:'bull',     xp:12, wave:8,  gold:[2,4], spr:'bull',  color:'#d05040' },
+    shadow:   { hp:35, atk:12, spd:110, type:'shadow',   xp:10, wave:10, gold:[2,4], spr:'shadow',color:'#503070' },
+    eliteChance: 0.15, eliteWave: 5, eliteHp: 3, eliteAtk: 2, eliteDrop: 5,
+  },
+  /* ---- 2.6 波次 / Boss / 主题（四角生成位随分辨率） ---- */
+  wave: {
+    baseCount: 5, perWave: 2, warnTime: 0.8, waveBanner: 1.5,
+    interAuto: 8, bossEvery: 5,
+    corners: IS_TOUCH
+      ? [ {x:40,y:40}, {x:600,y:40}, {x:40,y:320}, {x:600,y:320} ]
+      : [ {x:60,y:60}, {x:900,y:60}, {x:60,y:480}, {x:900,y:480} ],
+  },
+  boss: {
+    expBase: 100, expPer: 20, gold: 50,
+    guard:  { name:'回廊守卫', baseHp:500, perHp:100 },
+    lich:   { name:'巫妖王',   baseHp:400, perHp:100 },
+    dragon: { name:'熔岩巨龙', baseHp:600, perHp:100 },
+  },
+  /* ---- 2.7 商店（6 商品随机刷 4 格） ---- */
+  shop: {
+    items: [
+      { id:'potion',   name:'治疗药水', price:20, desc:'回复 40% 生命值' },
+      { id:'apple',    name:'金苹果',   price:35, desc:'最大生命 +10 并回满' },
+      { id:'bomb',     name:'炸弹',     price:30, desc:'对全场敌人造成 50 伤害' },
+      { id:'magnet',   name:'磁铁',     price:15, desc:'吸取全场经验与金币' },
+      { id:'blade',    name:'锐利之刃', price:40, desc:'攻击力 +8' },
+      { id:'talisman', name:'咒符',     price:25, desc:'立刻升 1 级（走三选一）' },
+    ], pick: 4,
+  },
+  /* ---- 2.8 战场掉落 ---- */
+  drops: { heart: 0.08, magnet: 0.03, bomb: 0.02 },
+  /* ---- 场景主题（每 5 波轮换） ---- */
+  themes: [
+    { name:'地牢', floor:['#3a2f22','#443726','#2f2619'], particle:'dust',  pColor:'#8a7a5a' },
+    { name:'雪原', floor:['#3a4356','#414b60','#354058'], particle:'snow',  pColor:'#dfe8ff' },
+    { name:'熔岩', floor:['#4a2a1c','#54301e','#3f2217'], particle:'spark', pColor:'#ff9a40' },
+    { name:'虚空', floor:['#2c2240','#332853','#261b38'], particle:'star',  pColor:'#c9b0ff' },
+  ],
+};
+
+/* ==================== PIXEL_ART：像素精灵（字符串数组 + 单字符调色板）+ 绘制缓存 ==================== */
+const PAL = {
+  '.': null,
+  K:'#141018', W:'#ffffff', Y:'#ffd76a', R:'#ff4a4a', B:'#0a0a0e', X:'#ffd76a',
+  H:'#6b4226', S:'#f0c8a0', A:'#3f6bd8', D:'#cdd3de', T:'#5a4632', F:'#a34b2a',
+  N:'#58d858', n:'#2ea52e', q:'#a8eef0',
+  P:'#8a4fd8', p:'#5c2ba8',
+  M:'#4a9fdc', m:'#2a5f9c',
+  O:'#f0903a', o:'#c05a1e',
+  V:'#d05040', v:'#8a2a22',
+  Q:'#503070', b:'#241040',
+  G:'#90a8c8', g:'#50586e',
+  L:'#38c0a0', l:'#1e6858',
+  C:'#f06a30', c:'#8a2e12',
+  x:'#38c0ff', h:'#ff4a5a', z:'#ff6ae0',
+};
+const SPRITES = {
+  hero: [
+    '....HHHH....',
+    '...HHHHHH...',
+    '..HHHSSHHH..',
+    '...HSSSSH...',
+    '....SBBS....',
+    '...AASSSA...',
+    '..AAASSSAA..',
+    '...AASSSA...',
+    '....TTTT....',
+    '...TTTTTT...',
+    '..FF...FF...',
+  ],
+  slime: ['..NNNN..','.NNNNNN.','NNBBYYNN','NNNNNNNN','.nNNNNn.','..nnnn..'],
+  bat: ['PP..PP..PP','.PP.PP.PP.','PPPPPPPPPP','.PPBBPP.P.','PPBYYBPPPP','.PP..PP...'],
+  skeleton: ['...WWWW...','..WWBBW...','.WWWWWWWW.','...WWWW...','..WWWWWW..','.WW.WW.WW.','.W..WW..W.','....WW....','...W..W...'],
+  tiny: ['..WW..','.WYWW.','.WWWW.','.W.WW.','.WWWW.','..WW..'],
+  mage: ['..MMM..','.MMMMM.','MMBYYMM','MMMMMMM','.MMMM..','..mm...','.M..M..'],
+  bomber: ['..OOOO..','.OOBOO..','OOOBYYOO','OOOOOOOO','.OOOO...','..oo....','..o..o..'],
+  bull: ['VV..VV..VV..','V.VV.VV.V...','VVVVVVVVVVVV','VVYYYYYYVVVV','VVVVVVVVVVVV','.VVVVVVVVVV.','.oooooooooo.'],
+  shadow: ['...QQ...','..QQQQ..','..QBQQ..','..QQQQ..','...QQ...','..Q..Q..','..Q..Q..'],
+  boss_guard: [
+    '....GGGGGG....',
+    '...GGGGGGGG...',
+    '..GGGGGGGGGG..',
+    '..GGBBBBBGG...',
+    '.GGGBBBBBBGG..',
+    '.GGGBBBBBBGG..',
+    '.GGGGGGGGGGGG.',
+    '..GGGGGGGGGG..',
+    '..GGGgGGgGGG..',
+    '..GggGGGGggG..',
+    '.gg..GGGG..gg.',
+    '....G....G....',
+    '...GG....GG...',
+  ],
+  boss_lich: [
+    '...LLLLLL...',
+    '..LLLLLLLL..',
+    '..LLBBBBLL..',
+    '..LLLLBBLL..',
+    '..LLBBBBLL..',
+    '.LLLLLLLLLL.',
+    '.LL.LLLL.LL.',
+    '.Ll.LLLL.lL.',
+    '....LLLL....',
+    '...LL..LL...',
+  ],
+  boss_dragon: [
+    '......CC......',
+    '.....CCCC.....',
+    '....CCCCCC....',
+    '...CCCCCCCC...',
+    '...CCBBBBCC...',
+    '...CCBBBBCC...',
+    '..CCCCCCCCCC..',
+    '..CCCCCCCCCC..',
+    '.CCCCCCCCCCCC.',
+    '.Cc.CCCCCC.Cc.',
+    '...C.CCCC.C...',
+    '...C.CC..CC...',
+  ],
+  xp_gem: ['..xx..','.xxxx.','.xqxx.','.xxxq.','.xxxx.','..xx..'],
+  coin_gold: ['..XX..','.XXXX.','XKKKKX','XKKKKX','.XXXX.','..XX..'],
+  heart_drop: ['.h.h.','hhhhh','.hhh.','..h..'],
+  magnet_drop: ['z..z.','.z.z.','..z..','..z..','..z..'],
+  bomb_drop: ['...B...','..BBB..','.BRRRB.','.BRCRB.','.BRRRB.','..BBB..','...B...'],
+};
+
+const _sprCache = {};
+function getSprite(name, scale){
+  const key = name + 'x' + scale;
+  if (_sprCache[key]) return _sprCache[key];
+  const rows = SPRITES[name];
+  const h = rows.length, w = rows[0].length;
+  const mk = (white) => {
+    const c = document.createElement('canvas');
+    c.width = w * scale; c.height = h * scale;
+    const ctx = c.getContext('2d');
+    for (let y = 0; y < h; y++){
+      for (let x = 0; x < w; x++){
+        const col = PAL[rows[y][x]];
+        if (!col) continue;
+        ctx.fillStyle = white ? '#ffffff' : col;
+        ctx.fillRect(x * scale, y * scale, scale, scale);
+      }
+    }
+    return c;
+  };
+  const out = { normal: mk(false), white: mk(true), cx: w*scale/2, cy: h*scale/2 };
+  _sprCache[key] = out;
+  return out;
+}
+function drawSprite(ctx, name, x, y, scale, flash, flip){
+  const s = getSprite(name, scale);
+  const img = flash ? s.white : s.normal;
+  if (flip){
+    ctx.save(); ctx.translate(x, y); ctx.scale(-1, 1);
+    ctx.drawImage(img, -s.cx, -s.cy); ctx.restore();
+  } else {
+    ctx.drawImage(img, x - s.cx, y - s.cy);
+  }
+}
+
+/* ==================== AUDIO：Web Audio 程序化合成音效（≥10 种，首次手势创建） ==================== */
+const AudioSys = {
+  ctx: null, master: null, ready: false,
+  init(){
+    if (this.ready) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.5;
+      this.master.connect(this.ctx.destination);
+      this.ready = true;
+    } catch(e) { /* 环境不支持则静默 */ }
+  },
+  resume(){ if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  tone(freq, dur, type, vol, slideTo, delay){
+    if (!this.ready) return;
+    const t0 = this.ctx.currentTime + (delay || 0);
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t0 + dur);
+    g.gain.setValueAtTime(vol || 0.2, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  },
+  noise(dur, vol, filterFreq, delay){
+    if (!this.ready) return;
+    const t0 = this.ctx.currentTime + (delay || 0);
+    const n = this.ctx.sampleRate * dur;
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random()*2 - 1) * (1 - i/n);
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const f = this.ctx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = filterFreq || 1200;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol || 0.25, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    src.connect(f); f.connect(g); g.connect(this.master);
+    src.start(t0);
+  },
+  play(name, p){
+    switch (name) {
+      case 'hit':       this.tone(220,.08,'square',.16,120); this.noise(.05,.08,2000); break;
+      case 'crit':      this.tone(340,.1,'square',.2,90); this.noise(.06,.12,2600); break;
+      case 'enemyDie':  this.noise(.22,.25,800); this.tone(160,.18,'sawtooth',.1,40); break;
+      case 'split':     this.noise(.14,.2,1000); this.tone(260,.12,'sawtooth',.08,120); break;
+      case 'hurt':      this.tone(180,.16,'sawtooth',.22,60); this.noise(.1,.2,900); break;
+      case 'levelUp':   [523,659,784,1046].forEach((f,i)=>this.tone(f,.12,'square',.15,null,i*.08)); break;
+      case 'card':      [698,1046].forEach((f,i)=>this.tone(f,.09,'triangle',.18,null,i*.06)); break;
+      case 'coin':      [988,1318].forEach((f,i)=>this.tone(f,.06,'triangle',.15,null,i*.04)); break;
+      case 'combo': {   const lv = p || 1; this.tone(300 + lv*50, .11, 'square', .17, 300 + lv*85); break; }
+      case 'boss':      this.noise(.5,.3,400); [110,146,196,262].forEach((f,i)=>this.tone(f,.25,'sawtooth',.12,null,i*.14)); break;
+      case 'shopBuy':   this.tone(880,.1,'triangle',.18,null,.05); this.tone(1320,.15,'triangle',.18,null,.12); break;
+      case 'nope':      this.tone(150,.12,'square',.13,90); break;
+      case 'skill':     this.tone(392,.12,'square',.14,196); this.tone(523,.12,'sawtooth',.08,null,.06); break;
+      case 'dash':      this.noise(.12,.12,1600); break;
+      case 'pickup':    this.tone(1100,.06,'triangle',.11); break;
+      case 'swing':     this.noise(.05,.06,3000); this.tone(500,.05,'triangle',.05,300); break;
+      case 'thunder':   this.noise(.4,.35,700); this.tone(80,.4,'sawtooth',.26,40); break;
+      case 'fire':      this.noise(.18,.2,900); this.tone(220,.18,'sawtooth',.1,60); break;
+      case 'explode':   this.noise(.3,.35,600); this.tone(120,.3,'sawtooth',.18,30); break;
+      case 'freeze':    this.tone(1200,.2,'triangle',.13,2400); break;
+      case 'heal':      [523,659,784].forEach((f,i)=>this.tone(f,.14,'triangle',.16,null,i*.07)); break;
+      case 'shield':    [392,523,659].forEach((f,i)=>this.tone(f,.12,'sine',.18,null,i*.05)); break;
+      case 'clone':     [784,523].forEach((f,i)=>this.tone(f,.1,'square',.12,null,i*.06)); break;
+      case 'whirl':     this.tone(300,.2,'sawtooth',.09,600); break;
+    }
+  },
+};
+
+/* ==================== INPUT：键鼠 + 触摸双输入层（左半屏摇杆/DOM 按钮，多指支持） ==================== */
+/* 左半屏任意按下=动态虚拟摇杆（触点即原点，半径60px，死区10px，按 CSS 像素计）；
+   右半屏点按=普攻；攻击/冲刺/技能由 DOM 控件触发（触屏）；键鼠同时可用（桌面） */
+const Input = {
+  keys: {},
+  attackQueued: false, dashQueued: false, attackHeld: false,
+  mouse: { x: 0, y: 0 },
+  joy: { active:false, id:null, ox:0, oy:0, dx:0, dy:0 },
+  anyKey: false,
+  init(){
+    /* 键盘（桌面） */
+    window.addEventListener('keydown', (e) => {
+      const c = (e.key || '');
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(c)) e.preventDefault();
+      this.anyKey = true; AudioSys.resume();
+      this.keys[c] = true;
+      if ((c === 'p' || c === 'P') && (Game.state === 'play' || Game.state === 'pause')) Game.togglePause();
+      if ((c === 'r' || c === 'R') && !(Game.state === 'levelup' || Game.state === 'shop')) Game.restart();
+    }, false);
+    window.addEventListener('keyup', (e) => { this.keys[e.key] = false; }, false);
+    window.addEventListener('blur', () => { this.keys = {}; });
+    /* 鼠标（桌面） */
+    const cv = document.getElementById('game');
+    const toLogical = (e) => {
+      const r = cv.getBoundingClientRect();
+      this.mouse.x = (e.clientX - r.left) * (CONFIG.W / r.width);
+      this.mouse.y = (e.clientY - r.top) * (CONFIG.H / r.height);
+    };
+    cv.addEventListener('mousemove', toLogical);
+    cv.addEventListener('mousedown', (e) => {
+      toLogical(e); this.anyKey = true; AudioSys.resume();
+      if (e.button === 0) this.attackQueued = true;
+      if (e.button === 2) this.dashQueued = true;
+    }, false);
+    cv.addEventListener('contextmenu', (e) => e.preventDefault());
+    /* 触摸手势拦截（iOS 忽略 user-scalable=no，需代码拦截缩放/滚动/长按） */
+    document.addEventListener('gesturestart',  (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+    document.addEventListener('gestureend',    (e) => e.preventDefault());
+    document.addEventListener('touchmove',     (e) => e.preventDefault(), { passive:false });
+    document.addEventListener('contextmenu',   (e) => e.preventDefault());
+    document.addEventListener('dblclick',      (e) => e.preventDefault());
+    /* 触摸输入（触屏设备生效，双击/长按无碍鼠标设备） */
+    cv.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive:false });
+    cv.addEventListener('touchmove',  (e) => this.onTouchMove(e),  { passive:false });
+    cv.addEventListener('touchend',   (e) => this.onTouchEnd(e),   { passive:false });
+    cv.addEventListener('touchcancel',(e) => this.onTouchEnd(e),   { passive:false });
+  },
+  onTouchStart(e){
+    e.preventDefault();
+    this.anyKey = true; AudioSys.resume();
+    const cv = document.getElementById('game');
+    const r = cv.getBoundingClientRect();
+    for (const t of e.changedTouches){
+      const x = t.clientX - r.left, y = t.clientY - r.top;
+      if (x < r.width * 0.5){
+        if (!this.joy.active){
+          this.joy.active = true; this.joy.id = t.identifier;
+          this.joy.ox = x; this.joy.oy = y; this.joy.dx = 0; this.joy.dy = 0;
+        }
+      } else {
+        this.attackQueued = true;
+      }
+    }
+  },
+  onTouchMove(e){
+    e.preventDefault();
+    for (const t of e.changedTouches){
+      if (t.identifier !== this.joy.id) continue;
+      const cv = document.getElementById('game');
+      const r = cv.getBoundingClientRect();
+      let dx = t.clientX - r.left - this.joy.ox;
+      let dy = t.clientY - r.top - this.joy.oy;
+      const len = Math.hypot(dx, dy);
+      if (len <= 10){ this.joy.dx = 0; this.joy.dy = 0; }
+      else {
+        const cl = Math.min(len, 60);
+        this.joy.dx = dx / len * cl;
+        this.joy.dy = dy / len * cl;
+      }
+    }
+  },
+  onTouchEnd(e){
+    e.preventDefault();
+    for (const t of e.changedTouches){
+      if (t.identifier === this.joy.id){
+        this.joy.active = false; this.joy.id = null; this.joy.dx = 0; this.joy.dy = 0;
+      }
+    }
+  },
+  getMove(){
+    let kx = 0, ky = 0;
+    if (this.keys['w']||this.keys['W']||this.keys['ArrowUp'])   ky -= 1;
+    if (this.keys['s']||this.keys['S']||this.keys['ArrowDown']) ky += 1;
+    if (this.keys['a']||this.keys['A']||this.keys['ArrowLeft']) kx -= 1;
+    if (this.keys['d']||this.keys['D']||this.keys['ArrowRight'])kx += 1;
+    const kl = Math.hypot(kx, ky);
+    if (kl > 1){ kx /= kl; ky /= kl; }
+    let jx = 0, jy = 0;
+    if (this.joy.active){
+      const len = Math.hypot(this.joy.dx, this.joy.dy);
+      if (len > 10){
+        const k = Math.min(1, len / 60);
+        jx = this.joy.dx / len * k;
+        jy = this.joy.dy / len * k;
+      }
+    }
+    let x = kx + jx, y = ky + jy;
+    const l = Math.hypot(x, y);
+    if (l > 1){ x /= l; y /= l; }
+    return { x, y };
+  },
+  wantAttack(){ const v = this.attackQueued || !!this.keys['j'] || !!this.keys['J'] || this.attackHeld; this.attackQueued = false; return v; },
+  wantDash()  { const v = this.dashQueued   || !!this.keys['k'] || !!this.keys['K']; this.dashQueued = false; return v; },
+};
+
+/* ==================== ENTITIES：玩家/敌人/Boss/子弹/拾取物/粒子/飘字（含对象池） ==================== */
+function makePool(cap, create){
+  const p = { free: [], active: [] };
+  for (let i = 0; i < cap; i++) p.free.push(create());
+  p.acquire = function(){ const o = p.free.length ? p.free.pop() : create(); p.active.push(o); return o; };
+  p.release = function(o){ const i = p.active.indexOf(o); if (i >= 0) p.active.splice(i, 1); p.free.push(o); };
+  p.clear  = function(){ while (p.active.length) p.free.push(p.active.pop()); };
+  return p;
+}
+
+/* 伤害飘字池（触屏模式上限 30，池满丢弃） */
+const Floaters = {
+  pool: makePool(CONFIG.perf.floaterMax, () => ({ x:0, y:0, vy:0, t:0, life:0, text:'', color:'#fff', size:12, crit:false })),
+  add(x, y, text, color, size, crit){
+    if (!this.pool.free.length) return;
+    const f = this.pool.acquire();
+    f.x = x + (Math.random()*10-5); f.y = y - 6;
+    f.vy = -46; f.t = 0; f.life = 0.85;
+    f.text = text; f.color = color; f.size = size || 13; f.crit = !!crit;
+  },
+  update(dt){
+    for (let i = this.pool.active.length - 1; i >= 0; i--){
+      const f = this.pool.active[i];
+      f.t += dt;
+      if (f.t >= f.life){ this.pool.release(f); continue; }
+      f.y += f.vy * dt; f.vy += 80 * dt;
+    }
+  },
+  draw(ctx){
+    for (const f of this.pool.active){
+      ctx.globalAlpha = Math.max(0, 1 - f.t / f.life);
+      ctx.font = (f.crit ? 'bold ' : '') + f.size + 'px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#000';
+      ctx.fillText(f.text, f.x + 1.5, f.y + 1.5);
+      ctx.fillStyle = f.color;
+      ctx.fillText(f.text, f.x, f.y);
+      ctx.globalAlpha = 1;
+    }
+  },
+};
+
+/* 粒子池（触屏模式数量减半） */
+const Particles = {
+  pool: makePool(CONFIG.perf.poolP, () => ({ x:0, y:0, vx:0, vy:0, t:0, life:0, color:'#fff', size:2, grav:0 })),
+  add(x, y, vx, vy, life, color, size, grav){
+    if (!this.pool.free.length) return;
+    const p = this.pool.acquire();
+    p.x = x; p.y = y; p.vx = vx; p.vy = vy;
+    p.t = 0; p.life = life; p.color = color; p.size = size || 2; p.grav = grav || 0;
+  },
+  burst(x, y, n, color, spd, life, grav){
+    n = Math.max(1, Math.round(n * CONFIG.perf.particle));
+    for (let i = 0; i < n; i++){
+      const a = Math.random()*Math.PI*2, s = spd * (0.3 + Math.random()*0.7);
+      this.add(x, y, Math.cos(a)*s, Math.sin(a)*s, life, color, 2 + Math.random()*2, grav);
+    }
+  },
+  update(dt){
+    for (let i = this.pool.active.length - 1; i >= 0; i--){
+      const p = this.pool.active[i];
+      p.t += dt;
+      if (p.t >= p.life){ this.pool.release(p); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.grav * dt;
+    }
+  },
+  draw(ctx){
+    for (const p of this.pool.active){
+      ctx.globalAlpha = Math.max(0, 1 - p.t / p.life);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+      ctx.globalAlpha = 1;
+    }
+  },
+};
+
+/* 子弹池 */
+const Bullets = {
+  pool: makePool(CONFIG.perf.poolB, () => ({ x:0,y:0,vx:0,vy:0,dmg:0,radius:4,life:0,t:0,color:'#fff',
+                               type:'enemy',aoe:0,pierce:0,rot:0 })),
+  add(o){
+    const b = this.pool.acquire();
+    b.x = o.x; b.y = o.y; b.vx = o.vx; b.vy = o.vy; b.dmg = o.dmg;
+    b.radius = o.radius || 4; b.life = o.life || 2; b.color = o.color || '#fff';
+    b.type = o.type || 'enemy'; b.aoe = o.aoe || 0; b.pierce = o.pierce || 0;
+    b.rot = o.rot || 0; b.t = 0;
+    return b;
+  },
+  update(dt){
+    for (let i = this.pool.active.length - 1; i >= 0; i--){
+      const b = this.pool.active[i];
+      b.t += dt;
+      if (b.t >= b.life || b.x < -40 || b.x > CONFIG.W+40 || b.y < -40 || b.y > CONFIG.H+40){
+        if (b.aoe > 0) Game.explodeAt(b.x, b.y, b.aoe, b.dmg);
+        this.pool.release(b); continue;
+      }
+      b.x += b.vx * dt; b.y += b.vy * dt;
+      if (b.type === 'enemy' && Game.state === 'play'){
+        if (Collide.circle(b.x, b.y, b.radius, Player.x, Player.y, Player.hitRadius())){
+          if (Player.shieldT > 0){
+            const a = Math.atan2(Player.y - b.y, Player.x - b.x);
+            Bullets.add({ x:Player.x, y:Player.y, vx:Math.cos(a)*380, vy:Math.sin(a)*380,
+                          dmg:Player.atk*0.8, life:0.8, color:'#7ee08a', type:'player', aoe:0, pierce:2, radius:4, rot:a });
+            this.pool.release(b);
+          } else if (!Player.invulnNow()){
+            Game.hurtPlayer(b.dmg, b.x, b.y);
+            this.pool.release(b);
+            Particles.burst(b.x, b.y, 5, '#ff6060', 90, .3);
+          }
+          continue;
+        }
+      }
+      if (b.type === 'player'){
+        const hit = Game.findEnemyAt(b.x, b.y, b.radius + 6);
+        if (hit){
+          Game.damageEnemy(hit, b.dmg, b.x, b.y, 30);
+          if (b.aoe > 0){ Game.explodeAt(b.x, b.y, b.aoe, b.dmg); this.pool.release(b); }
+          else {
+            b.pierce--;
+            if (b.pierce < 0){
+              Particles.burst(b.x, b.y, 4, b.color || '#fff', 70, .25);
+              this.pool.release(b);
+            }
+          }
+          continue;
+        }
+      }
+    }
+  },
+  draw(ctx){
+    for (const b of this.pool.active){
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.rot);
+      ctx.fillStyle = b.color;
+      const L = b.type === 'player' ? 10 : 7;
+      ctx.fillRect(-L/2, -b.radius/2, L, b.radius);
+      if (b.type === 'player'){ ctx.fillStyle = '#fff'; ctx.fillRect(-L/2, -1, 4, 2); }
+      ctx.restore();
+    }
+  },
+};
+
+/* 范围爆炸 */
+const Explosions = {
+  list: [],
+  spawn(x, y, radius, dmg){
+    this.list.push({ x, y, radius, dmg, t: 0, life: 0.28 });
+    if (dmg <= 0) return;
+    Game.enemies.forEach(e => { if (e.alive && Collide.dist(e.x, e.y, x, y) < radius + e.r) Game.damageEnemy(e, dmg, x, y, 50); });
+    Game.bosses.forEach(b => { if (b.alive && Collide.dist(b.x, b.y, x, y) < radius + b.r) Game.damageEnemy(b, dmg, x, y, 50); });
+  },
+  update(dt){
+    for (let i = this.list.length - 1; i >= 0; i--){
+      const e = this.list[i];
+      e.t += dt;
+      if (e.t >= e.life) this.list.splice(i, 1);
+    }
+  },
+  draw(ctx){
+    for (const e of this.list){
+      const k = e.t / e.life;
+      ctx.globalAlpha = 1 - k;
+      ctx.strokeStyle = '#ffb060'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.radius * k, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,120,40,' + (0.35*(1-k)).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.radius * k * 0.8, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  },
+};
+
+const Collide = {
+  circle(x1,y1,r1,x2,y2,r2){ const dx=x1-x2, dy=y1-y2; return dx*dx+dy*dy < (r1+r2)*(r1+r2); },
+  dist(x1,y1,x2,y2){ return Math.hypot(x1-x2, y1-y2); },
+};
+
+/* 玩家实体（双端一致） */
+const Player = {
+  x: CONFIG.W/2, y: CONFIG.H/2,
+  hp: 100, maxHp: 100, atk: 10,
+  facing: 0,
+  atkTimer: 0, dashT: 0, dashCdT: 0, invulnT: 0, dashVx: 1, dashVy: 0,
+  attackAnim: 0, cloneT: 0, cloneAtkTimer: 0, shieldT: 0, whirlT: 0,
+  up: { str:0, quick:0, frenzy:0, knock:0, vital:0, drain:0, crit:0, combom:0, magnet:0, greed:0, exp:0, armor:0, kai4:0 },
+  skills: [null, null, null, null],
+  skillCds: [0, 0, 0, 0],
+  empower: {},
+  lastHitCrit: false,
+  reset(){
+    this.x = CONFIG.W/2; this.y = CONFIG.H/2;
+    this.hp = CONFIG.player.hp; this.maxHp = CONFIG.player.hp;
+    this.atk = CONFIG.player.atk;
+    this.facing = 0; this.atkTimer = 0; this.dashT = 0; this.dashCdT = 0; this.invulnT = 0;
+    this.attackAnim = 0; this.cloneT = 0; this.cloneAtkTimer = 0;
+    this.shieldT = 0; this.whirlT = 0;
+    for (const k in this.up) this.up[k] = 0;
+    this.skills = [null, null, null, null];
+    this.skillCds = [0, 0, 0, 0];
+    this.empower = {};
+    this.lastHitCrit = false;
+  },
+  hitRadius(){ return CONFIG.player.hitRadius; },
+  speed(){
+    let s = CONFIG.player.speed;
+    for (let i = 0; i < this.up.quick; i++) s *= 1.08;
+    return s;
+  },
+  atkGap(){ let g = CONFIG.player.atkGap; for (let i = 0; i < this.up.frenzy; i++) g *= 0.9; return Math.max(0.08, g); },
+  critChance(){ return CONFIG.player.critCh + this.up.crit * 0.08; },
+  pickupRadius(){ return CONFIG.player.pickupR + this.up.magnet * 60; },
+  comboMax(){ return CONFIG.comboBase + this.up.combom * 2; },
+  maxSlots(){ return CONFIG.skillSlots.initial + (this.up.kai4 ? 1 : 0); },
+  freeSlot(){ for (let i = 0; i < this.maxSlots(); i++) if (!this.skills[i]) return i; return -1; },
+  ownsSkill(id){ if (id === 'extra') return this.up.kai4 > 0; return this.skills.indexOf(id) >= 0; },
+  skillMult(id){ return 1 + (this.empower[id] || 0); },
+  goldMult(){ let g = 1; for (let i = 0; i < this.up.greed; i++) g *= 1.25; return g; },
+  invulnNow(){ return this.dashT > 0 || this.invulnT > 0 || this.shieldT > 0; },
+  update(dt){
+    const m = Input.getMove();
+    this.facing = (m.x || m.y) ? Math.atan2(m.y, m.x) : this.facing;
+    this.dashCdT = Math.max(0, this.dashCdT - dt);
+    const dashSpeed = CONFIG.player.dashDist / CONFIG.player.dashDur;
+    if (this.dashT > 0){
+      this.dashT -= dt;
+      this.x += this.dashVx * dashSpeed * dt;
+      this.y += this.dashVy * dashSpeed * dt;
+      if (Math.random() < (IS_TOUCH ? 0.3 : 0.5)) Particles.add(this.x, this.y, (Math.random()-0.5)*40, (Math.random()-0.5)*40, .3, '#bfd8ff', 3);
+      this.clamp();
+    } else {
+      if (Input.wantDash() && this.dashCdT <= 0){
+        const d = (m.x || m.y) ? m : { x: Math.cos(this.facing), y: Math.sin(this.facing) };
+        this.dashVx = d.x; this.dashVy = d.y;
+        this.dashT = CONFIG.player.dashDur; this.dashCdT = CONFIG.player.dashCd;
+        AudioSys.play('dash');
+        Particles.burst(this.x, this.y, 8, '#bfd8ff', 60, .25);
+      }
+      this.x += m.x * this.speed() * dt;
+      this.y += m.y * this.speed() * dt;
+      this.clamp();
+    }
+    this.atkTimer = Math.max(0, this.atkTimer - dt);
+    this.invulnT = Math.max(0, this.invulnT - dt);
+    this.attackAnim = Math.max(0, this.attackAnim - dt);
+    this.shieldT = Math.max(0, this.shieldT - dt);
+    if (this.whirlT > 0){
+      this.whirlT -= dt;
+      const r = 54;
+      for (let i = 0; i < 8; i++){
+        const a = Game.time * 10 + i * Math.PI / 4;
+        const wx = this.x + Math.cos(a)*r, wy = this.y + Math.sin(a)*r;
+        const e = Game.findEnemyAt(wx, wy, 15);
+        if (e) Game.damageEnemy(e, this.atk * 0.45 * this.skillMult('whirl'), wx, wy, 20);
+      }
+    }
+    if (this.cloneT > 0){
+      this.cloneT -= dt;
+      this.cloneAtkTimer -= dt;
+      if (this.cloneAtkTimer <= 0){
+        this.cloneAtkTimer = 0.5;
+        const t = Game.nearestEnemy(this.x, this.y);
+        if (t){
+          const a = Math.atan2(t.y - this.y, t.x - this.x);
+          Bullets.add({ x:this.x+20, y:this.y, vx:Math.cos(a)*430, vy:Math.sin(a)*430,
+                        dmg:this.atk*0.6*this.skillMult('clone'), life:0.6, color:'#bf8aff',
+                        type:'player', aoe:0, pierce:1, radius:3, rot:a });
+        }
+      }
+    }
+    for (let i = 0; i < 4; i++) this.skillCds[i] = Math.max(0, this.skillCds[i] - dt);
+    if (Input.wantAttack() && this.atkTimer <= 0 && this.dashT <= 0) this.doAttack();
+  },
+  rollAttack(){
+    const crit = Math.random() < this.critChance();
+    this.lastHitCrit = crit;
+    return Math.round(this.atk * (crit ? CONFIG.player.critMult : 1));
+  },
+  doAttack(){
+    this.atkTimer = this.atkGap();
+    this.attackAnim = 0.16;
+    AudioSys.play('swing');
+    const t = Game.nearestEnemy(this.x, this.y);
+    const ang = t ? Math.atan2(t.y - this.y, t.x - this.x) : this.facing;
+    this.facing = ang;
+    const dmg = this.rollAttack();
+    let hitAny = false;
+    for (const e of Game.enemies){
+      if (!e.alive) continue;
+      const dx = e.x - this.x, dy = e.y - this.y;
+      if (Math.hypot(dx, dy) > CONFIG.melee.range + e.r) continue;
+      let a = Math.atan2(dy, dx) - ang;
+      while (a > Math.PI) a -= Math.PI*2;
+      while (a < -Math.PI) a += Math.PI*2;
+      if (Math.abs(a) <= CONFIG.melee.arc / 2){
+        Game.damageEnemy(e, dmg, e.x, e.y, 0);
+        const kb = CONFIG.melee.baseKnock * (1 + this.up.knock * 0.4);
+        e.kx += Math.cos(ang) * kb;
+        e.ky += Math.sin(ang) * kb;
+        hitAny = true;
+      }
+    }
+    if (hitAny){
+      AudioSys.play('hit');
+      for (let i = 0; i < 3; i++){
+        const a = ang + (Math.random()-0.5)*1.4;
+        Particles.add(this.x + Math.cos(ang)*CONFIG.melee.range*(0.4+Math.random()*0.5),
+                      this.y + Math.sin(ang)*CONFIG.melee.range*(0.4+Math.random()*0.5),
+                      Math.cos(a)*80, Math.sin(a)*80, .25, '#ffe9a8', 2);
+      }
+    }
+  },
+  clamp(){
+    const r = this.hitRadius();
+    this.x = Math.max(r, Math.min(CONFIG.W - r, this.x));
+    this.y = Math.max(r, Math.min(CONFIG.H - r, this.y));
+  },
+  draw(ctx){
+    if (this.shieldT > 0){
+      ctx.strokeStyle = 'rgba(126,224,138,.8)'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(this.x, this.y, 21 + Math.sin(Game.time*6)*2, 0, Math.PI*2); ctx.stroke();
+    }
+    if (this.whirlT > 0){
+      for (let i = 0; i < 5; i++){
+        const a = Game.time * 11 + i * Math.PI * 2 / 5;
+        const px = this.x + Math.cos(a)*54, py = this.y + Math.sin(a)*54;
+        ctx.fillStyle = '#cfe8ff';
+        ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+      }
+    }
+    const flashNow = this.invulnT > 0 && Math.floor(Game.time*18) % 2 === 0;
+    const flip = this.facing < -Math.PI/2 || this.facing > Math.PI/2;
+    drawSprite(ctx, 'hero', this.x, this.y, 3, flashNow, flip);
+    if (this.attackAnim > 0){
+      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, CONFIG.melee.range, this.facing - CONFIG.melee.arc/2, this.facing + CONFIG.melee.arc/2);
+      ctx.stroke();
+    }
+    if (this.cloneT > 0){
+      ctx.globalAlpha = 0.5;
+      drawSprite(ctx, 'hero', this.x + 28, this.y, 3, false, flip);
+      ctx.globalAlpha = 1;
+    }
+  },
+};
+
+/* 敌人工厂与 AI（8 种行为，双端一致） */
+function makeEnemy(def, x, y, opts){
+  const elite = opts && opts.elite;
+  const scale = def.type === 'tiny' ? 2 : 3;
+  const r = def.type === 'tiny' ? 7 : def.type === 'slime' ? 11 : def.type === 'bat' ? 9 : def.type === 'bull' ? 14 : 10;
+  return {
+    alive: true, def, x, y, r, scale, sprName: def.spr, color: def.color,
+    hp: elite ? def.hp*CONFIG.enemy.eliteHp : def.hp,
+    maxHp: elite ? def.hp*CONFIG.enemy.eliteHp : def.hp,
+    atk: elite ? def.atk*CONFIG.enemy.eliteAtk : def.atk,
+    xp: elite ? def.xp*CONFIG.enemy.eliteDrop : def.xp,
+    gold: elite ? [10,15] : def.gold,
+    elite: !!elite,
+    flash: 0, kx: 0, ky: 0, frozen: 0,
+    st: 'idle', stT: 0, seed: Math.random()*100,
+    id: (Math.random()*1e9)|0,
+    baseScale: scale,
+  };
+}
+const AI = {
+  update(e, dt){
+    const def = e.def, type = def.type;
+    e.stT -= dt;
+    const dx = Player.x - e.x, dy = Player.y - e.y;
+    const dist = Math.hypot(dx, dy);
+    const ang = Math.atan2(dy, dx);
+    const defSpd = def.spd;
+    switch (type) {
+      case 'slime':
+        e.x += Math.cos(ang) * defSpd * dt;
+        e.y += Math.sin(ang) * defSpd * dt;
+        break;
+      case 'bat':
+        e.x += Math.cos(ang) * defSpd * dt + Math.sin(Game.time*5 + e.seed) * 26 * dt;
+        e.y += Math.sin(ang) * defSpd * dt + Math.cos(Game.time*4 + e.seed) * 26 * dt;
+        break;
+      case 'skeleton': case 'tiny':
+        e.x += Math.cos(ang) * defSpd * dt;
+        e.y += Math.sin(ang) * defSpd * dt;
+        break;
+      case 'mage': {
+        const keep = 250;
+        e.x += Math.cos(ang) * defSpd * dt * (dist > keep + 10 ? 1 : dist < keep - 10 ? -1 : 0);
+        e.y += Math.sin(ang) * defSpd * dt * (dist > keep + 10 ? 1 : dist < keep - 10 ? -1 : 0);
+        if (e.stT <= 0 && dist < 430){
+          e.stT = 1.6;
+          for (let k = -1; k <= 1; k++){
+            const a = ang + k * 0.2;
+            Bullets.add({ x:e.x, y:e.y, vx:Math.cos(a)*180, vy:Math.sin(a)*180, dmg:e.atk,
+                          life:3, color:'#7ab8ff', type:'enemy', aoe:0, pierce:0, radius:4, rot:a });
+          }
+          AudioSys.play('fire');
+        }
+        break;
+      }
+      case 'bomber': {
+        if (e.st === 'boom'){
+          e.warnT -= dt;
+          if (e.warnT <= 0){
+            e.alive = false;
+            AudioSys.play('explode');
+            Particles.burst(e.x, e.y, 16, '#ff7a30', 150, .4);
+            Particles.burst(e.x, e.y, 10, '#fff0c0', 100, .35);
+            if (!Player.invulnNow() && Collide.dist(e.x, e.y, Player.x, Player.y) < 82)
+              Game.hurtPlayer(25, e.x, e.y);
+            Game.killEnemy(e, true);
+          }
+        } else if (dist < 70){
+          e.st = 'boom'; e.warnT = 0.6; e.stT = 0.6;
+        } else {
+          e.st = 'chase';
+          e.x += Math.cos(ang) * defSpd * dt;
+          e.y += Math.sin(ang) * defSpd * dt;
+        }
+        break;
+      }
+      case 'bull': {
+        if (e.st === 'charge'){
+          e.x += Math.cos(e.chargeAng) * 450 * dt;
+          e.y += Math.sin(e.chargeAng) * 450 * dt;
+          if (e.stT <= 0){ e.st = 'idle'; e.stT = 2.2; }
+        } else if (e.st === 'wind'){
+          e.warnT -= dt;
+          if (e.warnT <= 0){ e.st = 'charge'; e.stT = 1.1; e.chargeAng = ang; AudioSys.play('dash'); }
+        } else {
+          e.x += Math.cos(ang) * defSpd * dt;
+          e.y += Math.sin(ang) * defSpd * dt;
+          if (dist < 220 && e.stT <= 0){ e.st = 'wind'; e.warnT = 0.8; e.stT = 0.8; }
+        }
+        break;
+      }
+      case 'shadow': {
+        if (e.st === 'blink'){
+          e.stT -= dt;
+          if (e.stT <= 0){
+            const r = 80 + Math.random()*40, a = Math.random()*Math.PI*2;
+            Particles.burst(e.x, e.y, 10, '#7a5aa0', 80, .35);
+            e.x = Math.max(15, Math.min(CONFIG.W-15, Player.x + Math.cos(a)*r));
+            e.y = Math.max(15, Math.min(CONFIG.H-15, Player.y + Math.sin(a)*r));
+            Particles.burst(e.x, e.y, 10, '#7a5aa0', 80, .35);
+            AudioSys.play('clone');
+            e.st = 'wait'; e.stT = 0.7;
+          }
+        } else {
+          e.x += Math.cos(ang) * defSpd * dt * (dist > 95 ? 1 : -0.25);
+          e.y += Math.sin(ang) * defSpd * dt * (dist > 95 ? 1 : -0.25);
+          if (e.stT <= 0){ e.st = 'blink'; e.stT = 3.0; }
+        }
+        break;
+      }
+    }
+  },
+};
+const EnemySys = {
+  update(dt){
+    for (let i = Game.enemies.length - 1; i >= 0; i--){
+      const e = Game.enemies[i];
+      if (!e.alive){ Game.enemies.splice(i, 1); continue; }
+      e.flash = Math.max(0, e.flash - dt);
+      if (e.frozen > 0){ e.frozen -= dt; continue; }
+      AI.update(e, dt);
+      e.x += e.kx * dt; e.y += e.ky * dt;
+      e.kx *= Math.exp(-6*dt); e.ky *= Math.exp(-6*dt);
+      e.x = Math.max(10, Math.min(CONFIG.W-10, e.x));
+      e.y = Math.max(10, Math.min(CONFIG.H-10, e.y));
+      if (Game.state === 'play' && Collide.circle(e.x, e.y, e.r, Player.x, Player.y, Player.hitRadius())){
+        if (Player.shieldT > 0){
+          Game.damageEnemy(e, Player.atk, e.x, e.y, 70);
+          e.kx -= (e.x - Player.x) * 3; e.ky -= (e.y - Player.y) * 3;
+        } else if (!Player.invulnNow()){
+          Game.hurtPlayer(e.atk, e.x, e.y);
+          const k = 8;
+          e.kx += (e.x - Player.x) / Math.max(1, Math.abs(e.x - Player.x)) * k;
+          e.ky += (e.y - Player.y) / Math.max(1, Math.abs(e.y - Player.y)) * k;
+        }
+      }
+    }
+  },
+  draw(ctx){
+    for (const e of Game.enemies){
+      if (!e.alive) continue;
+      if (e.def.type === 'bull' && e.st === 'wind'){
+        ctx.strokeStyle = 'rgba(255,80,50,.8)'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 8, 0, Math.PI*2); ctx.stroke();
+      }
+      if (e.st === 'boom'){
+        ctx.strokeStyle = 'rgba(255,60,40,.8)'; ctx.lineWidth = 3;
+        const k = (0.6 - e.warnT) / 0.6;
+        ctx.beginPath(); ctx.arc(e.x, e.y, 40*(0.4+0.6*k), 0, Math.PI*2); ctx.stroke();
+      }
+      if (e.frozen > 0){
+        ctx.fillStyle = 'rgba(120,200,255,.22)';
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 3, 0, Math.PI*2); ctx.fill();
+      }
+      const bob = (e.def.type === 'slime' || e.def.type === 'bat') ? Math.sin(Game.time*6 + e.seed)*1.5 : 0;
+      drawSprite(ctx, e.sprName, e.x, e.y + bob, e.scale, e.flash > 0, false);
+      if (e.elite){
+        ctx.strokeStyle = '#ffd76a'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.r + 6, 0, Math.PI*2); ctx.stroke();
+      }
+      if (e.hp < e.maxHp){
+        const w = 26, h = 3;
+        ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(e.x - w/2 - 1, e.y - e.r - 11, w + 2, h + 2);
+        ctx.fillStyle = e.elite ? '#ffd76a' : '#ff4a4a';
+        ctx.fillRect(e.x - w/2, e.y - e.r - 10, w * Math.max(0, e.hp / e.maxHp), h);
+      }
+    }
+  },
+};
+
+/* 拾取物 */
+const Pickups = {
+  list: [],
+  add(type, x, y, val){
+    this.list.push({ type, x, y, val: val || 0, t: 0, attra: 0 });
+    if (this.list.length > 110) this.list.splice(0, 1);
+  },
+  magnetAll(){ for (const p of this.list) p.attra = 1; },
+  update(dt){
+    const pr = Player.pickupRadius();
+    for (let i = this.list.length - 1; i >= 0; i--){
+      const p = this.list[i];
+      p.t += dt;
+      if (p.t > 30){ this.list.splice(i, 1); continue; }
+      const d = Collide.dist(p.x, p.y, Player.x, Player.y);
+      if (p.attra || d < pr){
+        const spd = 320 + 620 * (1 - Math.min(1, d / Math.max(1, pr)));
+        p.x += (Player.x - p.x) / Math.max(1, d) * spd * dt;
+        p.y += (Player.y - p.y) / Math.max(1, d) * spd * dt;
+        if (d < 14){
+          this.collect(p);
+          this.list.splice(i, 1);
+        }
+      }
+    }
+  },
+  collect(p){
+    switch (p.type) {
+      case 'xp':   PlayerGain.gain(p.val); AudioSys.play('pickup'); break;
+      case 'gold':
+        Game.gold += Math.round(p.val * Player.goldMult());
+        Game.goldFlash = 0.4;
+        AudioSys.play('coin');
+        Floaters.add(p.x, p.y - 8, '+' + Math.round(p.val * Player.goldMult()), '#ffd76a', 12, false);
+        break;
+      case 'heart':
+        Player.hp = Math.min(Player.maxHp, Player.hp + 10);
+        Floaters.add(Player.x, Player.y - 26, '+10', '#ff6a7a', 14, false);
+        AudioSys.play('heal');
+        break;
+      case 'magnet':
+        Pickups.magnetAll();
+        Floaters.add(Player.x, Player.y - 26, '磁力全吸！', '#ff6ae0', 14, false);
+        AudioSys.play('shield');
+        break;
+      case 'bomb':
+        Game.damageAllEnemies(50, Player.x, Player.y);
+        Game.explodeAt(Player.x, Player.y, 300, 0);
+        AudioSys.play('explode');
+        Particles.burst(Player.x, Player.y, 24, '#ffb060', 200, .5);
+        break;
+    }
+  },
+  draw(ctx){
+    for (const p of this.list){
+      const bob = Math.sin(p.t * 5) * 2;
+      const spr = p.type === 'xp' ? 'xp_gem' : p.type === 'gold' ? 'coin_gold' :
+                  p.type === 'heart' ? 'heart_drop' : p.type === 'magnet' ? 'magnet_drop' : 'bomb_drop';
+      const sc = p.type === 'gold' ? 1.3 : p.type === 'xp' ? 1.7 : 1.5;
+      drawSprite(ctx, spr, p.x, p.y + bob, sc, false, false);
+    }
+  },
+};
+
+const PlayerGain = {
+  xp: 0, level: 1,
+  reset(){ this.xp = 0; this.level = 1; },
+  need(){ return CONFIG.xpBase + this.level * CONFIG.xpPerLevel; },
+  gain(v){
+    this.xp += v * (1 + Player.up.exp * 0.15);
+    while (this.xp >= this.need()){
+      this.xp -= this.need();
+      this.level++;
+      Game.triggerLevelUp();
+    }
+  },
+};
+
+/* ==================== SKILLS：10 个技能实现（双端一致） ==================== */
+const SKILL_DEFS = [
+  { id:'slash',   name:'剑气斩',     desc:'朝最近敌人发射 3 道穿透剑气', cd:5,  icon:'⚔',
+    cast(){ const t = Game.nearestEnemy(Player.x, Player.y);
+      const a = t ? Math.atan2(t.y-Player.y, t.x-Player.x) : Player.facing;
+      for (let i = 0; i < 3; i++){
+        const aa = a + (i-1)*0.14;
+        Bullets.add({ x:Player.x, y:Player.y, vx:Math.cos(aa)*560, vy:Math.sin(aa)*560,
+                      dmg:Player.atk*1.1*Player.skillMult('slash'), life:0.9, color:'#c0f0ff',
+                      type:'player', aoe:0, pierce:5, radius:4, rot:aa });
+      }
+      AudioSys.play('skill'); } },
+  { id:'fire',    name:'火球术',     desc:'投射火球，命中爆炸范围伤害', cd:4,  icon:'🔥',
+    cast(){ const t = Game.nearestEnemy(Player.x, Player.y);
+      const a = t ? Math.atan2(t.y-Player.y, t.x-Player.x) : Player.facing;
+      Bullets.add({ x:Player.x, y:Player.y, vx:Math.cos(a)*430, vy:Math.sin(a)*430,
+                    dmg:Player.atk*1.6*Player.skillMult('fire'), life:1.6, color:'#ff9a40',
+                    type:'player', aoe:72, pierce:0, radius:5, rot:a });
+      AudioSys.play('fire'); } },
+  { id:'thunder', name:'雷暴',       desc:'天降 6 道随机落雷（红圈预警）', cd:8, icon:'⚡',
+    cast(){
+      const spots = [];
+      for (let i = 0; i < 6; i++){
+        spots.push({ x: Player.x + (Math.random()-0.5)*380, y: Player.y + (Math.random()-0.5)*280 });
+      }
+      Game.telegraphs.push({ kind:'strike', items: spots, t: 0.55 });
+      Game.strikes.push(...spots.map(s => ({ x:s.x, y:s.y, delay: 0.55 })));
+      AudioSys.play('thunder'); } },
+  { id:'whirl',   name:'旋风斩',     desc:'环绕自身旋转攻击 1.5 秒',   cd:8,  icon:'🌀',
+    cast(){ Player.whirlT = 1.5; AudioSys.play('whirl'); } },
+  { id:'chain',   name:'闪电链',     desc:'对最多 5 个敌人跳跃雷击',     cd:6,  icon:'🪄',
+    cast(){
+      const start = Game.nearestEnemy(Player.x, Player.y);
+      if (!start){ AudioSys.play('nope'); return; }
+      const visited = new Set();
+      let cur = start, pts = [];
+      for (let k = 0; k < 5 && cur && !visited.has(cur.id); k++){
+        visited.add(cur.id); pts.push({ x: cur.x, y: cur.y });
+        Game.damageEnemy(cur, Player.atk*0.9*Player.skillMult('chain'), cur.x, cur.y, 30);
+        let next = null, best = 1e9;
+        for (const e of Game.enemies){
+          if (!e.alive || visited.has(e.id)) continue;
+          const d = Collide.dist(cur.x, cur.y, e.x, e.y);
+          if (d < 140 && d < best){ best = d; next = e; }
+        }
+        for (const b of Game.bosses){
+          if (!b.alive || visited.has(b.id)) continue;
+          const d = Collide.dist(cur.x, cur.y, b.x, b.y);
+          if (d < 150 && d < best){ best = d; next = b; }
+        }
+        cur = next;
+      }
+      Game.chainAnim.push({ points: pts, t: 0.3 });
+      AudioSys.play('thunder'); } },
+  { id:'frost',   name:'冰霜新星',   desc:'冻结周围敌人 2 秒',          cd:10, icon:'❄',
+    cast(){ AudioSys.play('freeze');
+      for (const e of Game.enemies){
+        if (!e.alive) continue;
+        if (Collide.dist(e.x, e.y, Player.x, Player.y) < 150){
+          e.frozen = 2;
+          Game.damageEnemy(e, Player.atk*0.5*Player.skillMult('frost'), e.x, e.y, 10);
+        }
+      }
+      Game.frostRings.push({ x:Player.x, y:Player.y, r:0, t:0.4 });
+    } },
+  { id:'clone',   name:'影分身',     desc:'召唤分身协战 8 秒',           cd:15, icon:'👤',
+    cast(){ Player.cloneT = 8; AudioSys.play('clone'); } },
+  { id:'shield',  name:'圣盾',       desc:'3 秒免伤并对接触者反伤',     cd:12, icon:'🛡',
+    cast(){ Player.shieldT = 3; AudioSys.play('shield'); } },
+  { id:'heal',    name:'治愈之光',   desc:'回复 30% 最大生命',          cd:20, icon:'💗',
+    cast(){ const h = Math.round(Player.maxHp * 0.3);
+      Player.hp = Math.min(Player.maxHp, Player.hp + h);
+      Floaters.add(Player.x, Player.y - 26, '+' + h, '#7ee08a', 16, false);
+      Particles.burst(Player.x, Player.y, 12, '#7ee08a', 70, .5, -30);
+      AudioSys.play('heal'); } },
+  { id:'extra',   name:'技能栏扩展', desc:'被动：开启第 4 技能槽', cd:0, icon:'🔓',
+    cast(){ Player.up.kai4 = 1; AudioSys.play('levelUp'); } },
+];
+const skillById = {};
+SKILL_DEFS.forEach(s => skillById[s.id] = s);
+
+function useSkillAt(slotIdx){
+  const sid = Player.skills[slotIdx];
+  if (!sid) return;
+  const def = skillById[sid];
+  if (def.cd <= 0 || Player.dashT > 0) return;
+  if (Player.skillCds[slotIdx] > 0){ AudioSys.play('nope'); return; }
+  def.cast();
+  Player.skillCds[slotIdx] = def.cd;
+}
+
+/* ==================== WAVES：波次生成 + 四角预警 + Boss 轮换 + 休整期 ==================== */
+const Waves = {
+  num: 0, state: 'inter',
+  spawnQueue: [], bannerT: 0, autoT: 8, prevName: '',
+  reset(){ this.num = 0; this.state = 'inter'; this.spawnQueue = []; this.bannerT = 0; this.autoT = CONFIG.wave.interAuto; },
+  count(){ return CONFIG.wave.baseCount + this.num * CONFIG.wave.perWave; },
+  isBossWave(){ return this.num % CONFIG.wave.bossEvery === 0; },
+  bossKey(){ return ['guard','lich','dragon'][(this.num / CONFIG.wave.bossEvery - 1 + 3) % 3]; },
+  previewNext(){
+    const n = this.num + 1;
+    if (n % CONFIG.wave.bossEvery === 0)
+      return CONFIG.boss[['guard','lich','dragon'][(n / CONFIG.wave.bossEvery - 1 + 3) % 3]].name + ' 来袭';
+    const pool = [];
+    for (const k in CONFIG.enemy){
+      const d = CONFIG.enemy[k];
+      if (d.type && d.type !== 'tiny' && d.wave <= n) pool.push(d.type);
+    }
+    return '敌人 × ' + (CONFIG.wave.baseCount + n * CONFIG.wave.perWave);
+  },
+  start(){
+    this.num++;
+    this.state = 'fight';
+    this.bannerT = CONFIG.wave.waveBanner;
+    this.spawnQueue = [];
+    if (this.isBossWave()){
+      this.spawnQueue.push({ x: CONFIG.W/2, y: CONFIG.H/2 - 20, boss: this.bossKey(), delay: 1.2 });
+      this.prevName = CONFIG.boss[this.bossKey()].name + ' 来袭';
+    } else {
+      const pool = [];
+      for (const k in CONFIG.enemy){
+        const d = CONFIG.enemy[k];
+        if (d.type && d.type !== 'tiny' && d.wave <= this.num) pool.push(d.type);
+      }
+      const count = this.count();
+      const cs = CONFIG.wave.corners;
+      for (let i = 0; i < count; i++){
+        const c = cs[i % 4];
+        const defType = pool[Math.floor(Math.random() * pool.length)];
+        const elite = this.num >= CONFIG.enemy.eliteWave && Math.random() < CONFIG.enemy.eliteChance;
+        this.spawnQueue.push({
+          x: c.x + (Math.random()*30-15),
+          y: c.y + (Math.random()*30-15),
+          def: CONFIG.enemy[defType], delay: CONFIG.wave.warnTime, elite });
+      }
+      this.prevName = '敌人 × ' + count;
+    }
+  },
+  update(dt){
+    for (let i = this.spawnQueue.length - 1; i >= 0; i--){
+      const s = this.spawnQueue[i];
+      s.delay -= dt;
+      if (s.delay <= 0){
+        if (s.boss) Game.spawnBoss(s.boss);
+        else Game.spawnEnemy(s.def, s.x, s.y, { elite: s.elite });
+        this.spawnQueue.splice(i, 1);
+      }
+    }
+    this.bannerT = Math.max(0, this.bannerT - dt);
+    if (this.state === 'fight' && this.spawnQueue.length === 0 &&
+        Game.enemies.length === 0 && Game.bosses.length === 0){
+      this.state = 'inter';
+      this.autoT = CONFIG.wave.interAuto;
+      this.prevName = this.previewNext();
+      UI.showInter();
+    }
+  },
+  tickAuto(dt){
+    if (this.state === 'inter' && !Game.shopOpen){
+      this.autoT -= dt;
+      if (this.autoT <= 0) this.go();
+    }
+  },
+  go(){ UI.hideAll(); this.start(); },
+};
+
+/* ==================== UPGRADES：12 强化卡（数值与规格一致） ==================== */
+const UPGRADE_DEFS = [
+  { id:'str',    name:'力量',     desc:'攻击力 +4',            max:Infinity, icon:'⚔', apply(){ Player.atk += 4; Player.up.str++; } },
+  { id:'quick',  name:'迅捷',     desc:'移动速度 +8%',          max:5, icon:'💨', apply(){ Player.up.quick++; } },
+  { id:'frenzy', name:'狂怒',     desc:'攻击速度 +10%',         max:5, icon:'🔥', apply(){ Player.up.frenzy++; } },
+  { id:'knock',  name:'巨力',     desc:'击退效果 +40%',         max:3, icon:'💪', apply(){ Player.up.knock++; } },
+  { id:'vital',  name:'活力',     desc:'最大生命 +20 并回满',    max:Infinity, icon:'❤', apply(){ Player.maxHp += 20; Player.hp = Player.maxHp; Player.up.vital++; } },
+  { id:'drain',  name:'吸血',     desc:'击杀回复 2 点生命',      max:3, icon:'🧛', apply(){ Player.up.drain++; } },
+  { id:'crit',   name:'暴击',     desc:'暴击率 +8%',           max:5, icon:'💥', apply(){ Player.up.crit++; } },
+  { id:'combom', name:'连击大师', desc:'连击伤害上限 +2 层',    max:3, icon:'🔗', apply(){ Player.up.combom++; } },
+  { id:'magnet', name:'磁力',     desc:'拾取半径 +60px',        max:3, icon:'🧲', apply(){ Player.up.magnet++; } },
+  { id:'greed',  name:'贪婪',     desc:'金币获取 +25%',         max:3, icon:'💰', apply(){ Player.up.greed++; } },
+  { id:'exp',    name:'经验',     desc:'经验获取 +15%',         max:Infinity, icon:'✨', apply(){ Player.up.exp++; } },
+  { id:'armor',  name:'护甲',     desc:'受伤减免 8%（叠乘）',   max:4, icon:'🛡', apply(){ Player.up.armor++; } },
+];
+const upDefById = {};
+UPGRADE_DEFS.forEach(u => upDefById[u.id] = u);
+
+function rollCards(){
+  const pool = [];
+  for (const u of UPGRADE_DEFS)
+    if (Player.up[u.id] < u.max) pool.push({ kind:'up', id:u.id });
+  for (const s of SKILL_DEFS){
+    if (!Player.ownsSkill(s.id)) pool.push({ kind: 'skill', id: s.id });
+    else if (s.id !== 'extra' && Player.freeSlot() < 0) pool.push({ kind: 'skill', id: s.id, empower: true });
+  }
+  const bag = pool.slice();
+  const picked = [];
+  for (let i = 0; i < CONFIG.cardCount && bag.length; i++){
+    const idx = Math.floor(Math.random() * bag.length);
+    picked.push(bag.splice(idx, 1)[0]);
+  }
+  while (picked.length < CONFIG.cardCount)
+    picked.push(pool.length ? pool[Math.floor(Math.random()*pool.length)] : { kind:'up', id:'str' });
+  return picked;
+}
+
+/* ==================== SHOP：商店（6 商品随机刷 4 格，休整期开放且暂停计时） ==================== */
+const Shop = {
+  items: [],
+  refresh(){
+    const bag = CONFIG.shop.items.slice();
+    this.items = [];
+    while (this.items.length < CONFIG.shop.pick && bag.length){
+      this.items.push(bag.splice(Math.floor(Math.random()*bag.length), 1)[0]);
+    }
+  },
+  buy(item){
+    if (Game.gold < item.price){ AudioSys.play('nope'); return false; }
+    Game.gold -= item.price;
+    AudioSys.play('shopBuy');
+    switch (item.id) {
+      case 'potion':
+        Player.hp = Math.min(Player.maxHp, Player.hp + Math.round(Player.maxHp*0.4));
+        Floaters.add(Player.x, Player.y-26, '+' + Math.round(Player.maxHp*0.4), '#7ee08a', 15, false);
+        break;
+      case 'apple':  Player.maxHp += 10; Player.hp = Player.maxHp; break;
+      case 'bomb':   Game.damageAllEnemies(50, Player.x, Player.y);
+                     Game.explodeAt(Player.x, Player.y, 300, 0);
+                     Particles.burst(Player.x, Player.y, 30, '#ffb060', 220, .6); break;
+      case 'magnet': Pickups.magnetAll(); break;
+      case 'blade':  Player.atk += 8; break;
+      case 'talisman': Game.triggerLevelUp(); break;
+    }
+    return true;
+  },
+};
+
+/* ==================== COMBO：连击系统（3 秒未命中清零，每层 +5%，5/10 层升调音） ==================== */
+const Combo = {
+  count: 0, timer: 0, max: 0,
+  perDamage: CONFIG.comboPer,
+  reset(){ this.count = 0; this.timer = 0; this.max = 0; },
+  add(){
+    this.count = Math.min(this.count + 1, Player.comboMax());
+    this.timer = CONFIG.comboTime;
+    this.max = Math.max(this.max, this.count);
+    if (this.count > 0 && this.count % 5 === 0) AudioSys.play('combo', this.count);
+  },
+  tick(dt){
+    if (this.timer > 0){
+      this.timer -= dt;
+      if (this.timer <= 0) this.count = 0;
+    }
+  },
+  damageMult(){ return 1 + this.count * this.perDamage; },
+  draw(ctx){
+    if (this.count < 2) return;
+    const k = Math.min(1, this.count / Player.comboMax());
+    const r = 255, g = Math.round(150 + (1-k)*105), b = Math.round(110 - k*100);
+    const size = 18 + this.count * 2.2;
+    const txt = this.count + ' COMBO';
+    ctx.font = 'bold ' + size + 'px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(0,0,0,.6)';
+    ctx.fillText(txt, CONFIG.W/2 + 2, 44);
+    ctx.fillStyle = 'rgb(' + r + ',' + Math.max(70,g) + ',' + Math.max(0,b) + ')';
+    ctx.fillText(txt, CONFIG.W/2, 42);
+    ctx.fillStyle = 'rgba(255,140,60,.55)';
+    ctx.fillRect(CONFIG.W/2 - 40, 54, 80 * (this.timer / CONFIG.comboTime), 4);
+  },
+};
+
+/* ==================== UI：HUD 与 DOM 浮层 + 触摸按钮冷却层 ==================== */
+const UI = {
+  els: {},
+  init(){
+    ['lay-title','lay-levelup','lay-shop','lay-inter','lay-pause','lay-dead',
+     'cards-box','shop-box','shop-gold','inter-title','inter-prev','dead-stats','rec-newest','best-wave']
+      .forEach(id => this.els[id] = document.getElementById(id));
+    document.getElementById('inter-go').onclick   = () => { AudioSys.resume(); Waves.go(); };
+    document.getElementById('inter-shop').onclick = () => Game.openShop();
+    document.getElementById('shop-close').onclick = () => Game.closeShop();
+    document.getElementById('dead-restart').onclick = () => Game.restart();
+    document.getElementById('resume-btn').onclick = () => { Game.togglePause(); };
+    document.getElementById('title-keys').style.display = IS_TOUCH ? 'none' : 'block';
+    document.getElementById('title-hint').textContent = IS_TOUCH ? '点击屏幕开始' : '按任意键 / 点击开始';
+    /* 触摸按钮绑事件（多指：左摇杆 + 右攻击互不干扰） */
+    const wire = (el, onStart, onEnd) => {
+      el.addEventListener('touchstart', (e) => { e.preventDefault(); onStart(e); }, { passive:false });
+      el.addEventListener('touchend',   (e) => { e.preventDefault(); if (onEnd) onEnd(e); }, { passive:false });
+      el.addEventListener('touchcancel',(e) => { e.preventDefault(); if (onEnd) onEnd(e); }, { passive:false });
+    };
+    wire(document.getElementById('btn-attack'), () => { Input.attackHeld = true; }, () => { Input.attackHeld = false; });
+    wire(document.getElementById('btn-dash'),   () => { Input.dashQueued = true; });
+    document.querySelectorAll('.btn-skill').forEach((b, i) => {
+      wire(b, () => { Game.pressSkill(i + 1); });
+    });
+    document.getElementById('btn-pause').addEventListener('touchstart', (e) => { e.preventDefault(); Game.togglePause(); }, { passive:false });
+    document.getElementById('btn-pause').addEventListener('mousedown', (e) => { e.preventDefault(); Game.togglePause(); });
+  },
+  show(id){ this.els[id].classList.add('show'); },
+  hide(id){ this.els[id].classList.remove('show'); },
+  hideAll(){
+    for (const id of ['lay-title','lay-levelup','lay-shop','lay-inter','lay-pause','lay-dead'])
+      this.els[id].classList.remove('show');
+  },
+  showTitle(){
+    this.hideAll();
+    this.els['best-wave'].textContent = Save.getBest();
+    this.show('lay-title');
+  },
+  showLevelUp(cards){
+    this.hideAll();
+    const box = this.els['cards-box'];
+    box.innerHTML = '';
+    cards.forEach((c) => {
+      const isUp = c.kind === 'up';
+      const def = isUp ? upDefById[c.id] : skillById[c.id];
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.innerHTML =
+        '<div class="icon">' + def.icon + '</div>' +
+        '<div class="cname">' + def.name + '</div>' +
+        '<div class="cdesc">' + (c.empower ? '重复技能 → 随机已装备技能伤害 +20%' : def.desc) + '</div>' +
+        '<div class="cstk">' + (isUp ? (def.max === Infinity ? '可无限叠加' : '叠层 ' + Player.up[c.id] + '/' + def.max)
+                                     : (c.id === 'extra' ? '被动技能' : '技能 · 冷却 ' + def.cd + 's')) + '</div>' +
+        '<div class="cnum">按 ' + (isUp ? '数字键' : '数字键') + ' 选择</div>';
+      el.onclick = () => Game.pickCard(c);
+      box.appendChild(el);
+    });
+    this.show('lay-levelup');
+  },
+  pickCardByNumber(n){
+    if (Game.state === 'levelup' && Game.pendingCards){
+      const c = Game.pendingCards[n - 1];
+      if (c) Game.pickCard(c);
+    }
+  },
+  showShop(){ this.hideAll(); this.show('lay-shop'); this.renderShopList(); },
+  renderShopList(){
+    const box = this.els['shop-box'];
+    box.innerHTML = '';
+    this.els['shop-gold'].textContent = '当前金币：' + Game.gold + ' G';
+    Shop.items.forEach(item => {
+      const d = document.createElement('div');
+      d.className = 'sitem' + (Game.gold < item.price ? ' disabled' : '');
+      d.innerHTML = '<div class="sname">' + item.name + '</div>' +
+                    '<div class="sdesc">' + item.desc + '</div>' +
+                    '<div class="sprice">◆ <b>' + item.price + '</b> G</div>';
+      d.onclick = () => { if (Shop.buy(item)) this.renderShopList(); };
+      box.appendChild(d);
+    });
+  },
+  showInter(){
+    this.hideAll();
+    this.els['inter-title'].textContent = '— 第 ' + Waves.num + ' 波 完成 —';
+    this.els['inter-prev'].textContent = '下一波：' + (Waves.prevName || '未知');
+    this.show('lay-inter');
+  },
+  showPause(){ this.hideAll(); this.show('lay-pause'); },
+  showDead(){
+    this.hideAll();
+    this.els['dead-stats'].innerHTML =
+      '<div class="stat-line">抵达波次 <b>' + Waves.num + '</b></div>' +
+      '<div class="stat-line">击杀数量 <b>' + Game.kills + '</b></div>' +
+      '<div class="stat-line">勇者等级 <b>' + PlayerGain.level + '</b></div>' +
+      '<div class="stat-line">获得金币 <b>' + Game.gold + '</b></div>' +
+      '<div class="stat-line">最高连击 <b>' + Combo.max + '</b></div>';
+    this.els['rec-newest'].textContent = Game.isNewRecord ? '★ 新纪录！最高波次 ' + Game.bestNew + ' ★' : '当前最高纪录：' + Save.getBest() + ' 波';
+    this.els['rec-newest'].style.color = Game.isNewRecord ? '#ffd76a' : '#777';
+    this.show('lay-dead');
+  },
+  refreshTouch(){
+    const ctl = document.getElementById('touch-ctl');
+    ctl.style.display = (IS_TOUCH && Game.state === 'play' && Waves.state === 'fight') ? 'block' : 'none';
+    if (!IS_TOUCH) return;
+    for (let i = 0; i < 4; i++){
+      const cdEl = document.getElementById('sk-cd-' + i);
+      const icoEl = document.getElementById('sk-ico-' + i);
+      const btn = document.querySelector('.btn-skill[data-skill="' + i + '"]');
+      if (!cdEl || !btn) continue;
+      if (i >= Player.maxSlots()){
+        btn.classList.add('locked');
+        icoEl.textContent = '锁';
+        cdEl.style.height = '0%';
+        continue;
+      }
+      btn.classList.remove('locked');
+      const sid = Player.skills[i];
+      if (sid){
+        icoEl.textContent = skillById[sid].icon;
+        const k = Player.skillCds[i] / skillById[sid].cd;
+        cdEl.style.height = (k * 100) + '%';
+        cdEl.firstChild.textContent = k > 0 ? String(Math.ceil(Player.skillCds[i])) : '';
+      } else {
+        icoEl.textContent = '＋';
+        cdEl.style.height = '0%';
+      }
+    }
+  },
+  /* 画布 HUD（触屏模式技能栏走 DOM 触摸钮，桌面模式绘制带键位的画布技能栏） */
+  drawHUD(ctx){
+    const mb = IS_TOUCH ? 150 : 200;                 // 血条宽度
+    const bx = 10, by = 10, bw = mb, bh = IS_TOUCH ? 13 : 16;
+    const lc = bw + (IS_TOUCH ? 18 : 21);            // 等级徽章圆心
+    const gx = bw + (IS_TOUCH ? 38 : 44);            // 金币文本偏移
+    ctx.fillStyle = 'rgba(0,0,0,.55)';
+    ctx.fillRect(bx - 4, by - 4, bw + 8, bh + 24);
+    ctx.fillStyle = '#331111'; ctx.fillRect(bx, by, bw, bh);
+    const k = Math.max(0, Player.hp / Player.maxHp);
+    ctx.fillStyle = k > 0.5 ? '#e03a3a' : '#ff2a2a';
+    ctx.fillRect(bx, by, bw * k, bh);
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(bx, by, bw, bh);
+    ctx.font = 'bold ' + (IS_TOUCH ? 10 : 11) + 'px "Courier New", monospace'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(Player.hp + ' / ' + Player.maxHp, bx + 4, by + 11);
+    ctx.fillStyle = '#ffd76a';
+    ctx.beginPath(); ctx.arc(lc, by + 7, IS_TOUCH ? 10 : 11, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#5a3a00'; ctx.font = 'bold ' + (IS_TOUCH ? 10 : 11) + 'px "Courier New", monospace'; ctx.textAlign = 'center';
+    ctx.fillText('Lv' + PlayerGain.level, lc, by + 11);
+    Game.goldFlash = Math.max(0, Game.goldFlash - 0.016);
+    ctx.textAlign = 'left'; ctx.font = 'bold ' + (IS_TOUCH ? 12 : 13) + 'px "Courier New", monospace';
+    ctx.fillStyle = Game.goldFlash > 0 ? '#fff7c8' : '#ffd76a';
+    ctx.fillText('◆ ' + Game.gold, gx, by + 10);
+    // 底部经验条（触屏挪高避让技能钮）
+    const ex = CONFIG.W/2 - (IS_TOUCH ? 130 : 170), ew = IS_TOUCH ? 260 : 340;
+    const ey = IS_TOUCH ? CONFIG.H - 78 : CONFIG.H - 22, eh = IS_TOUCH ? 8 : 10;
+    ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(ex - 2, ey - 2, ew + 4, eh + 4);
+    ctx.fillStyle = '#14101c'; ctx.fillRect(ex, ey, ew, eh);
+    ctx.fillStyle = '#ffd76a';
+    ctx.fillRect(ex, ey, ew * Math.min(1, PlayerGain.xp / PlayerGain.need()), eh);
+    ctx.strokeStyle = '#8a6a1a'; ctx.lineWidth = 1; ctx.strokeRect(ex, ey, ew, eh);
+    // 桌面模式：画布技能栏（带键位/冷却遮罩）；触屏模式由 DOM 按钮接管
+    if (!IS_TOUCH){
+      const ns = Player.maxSlots(), sbs = 44, gap = 6;
+      const sx = CONFIG.W - ns * (sbs + gap) + gap - 12, sy = CONFIG.H - sbs - 12;
+      for (let i = 0; i < 4; i++){
+        const x = sx + i * (sbs + gap);
+        if (i >= ns){
+          ctx.fillStyle = 'rgba(0,0,0,.35)';
+          ctx.fillRect(x, sy, sbs, sbs);
+          ctx.strokeStyle = '#444'; ctx.lineWidth = 2; ctx.strokeRect(x, sy, sbs, sbs);
+          ctx.font = '14px serif'; ctx.textAlign = 'center';
+          ctx.fillText('🔒', x + sbs/2, sy + sbs/2 + 5);
+          continue;
+        }
+        ctx.fillStyle = 'rgba(0,0,0,.55)';
+        ctx.fillRect(x, sy, sbs, sbs);
+        ctx.strokeStyle = Player.skillCds[i] > 0 ? '#555' : '#ffd76a';
+        ctx.lineWidth = 2; ctx.strokeRect(x, sy, sbs, sbs);
+        const sid = Player.skills[i];
+        if (sid){
+          ctx.font = '20px serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+          ctx.fillText(skillById[sid].icon, x + sbs/2, sy + sbs/2 + 7);
+          const kk = Player.skillCds[i] / skillById[sid].cd;
+          if (kk > 0){
+            ctx.fillStyle = 'rgba(10,10,20,.72)';
+            ctx.fillRect(x, sy, sbs, sbs * kk);
+            ctx.font = 'bold 13px "Courier New", monospace';
+            ctx.fillStyle = '#ffd76a';
+            ctx.fillText('' + Math.ceil(Player.skillCds[i]), x + sbs/2, sy + sbs * kk - 6);
+          }
+        }
+        ctx.font = '9px "Courier New", monospace'; ctx.textAlign = 'right'; ctx.fillStyle = '#999';
+        ctx.fillText(String(i + 1), x + sbs - 3, sy + sbs - 3);
+      }
+    }
+    if (Player.dashT > 0 || Player.invulnT > 0){
+      ctx.strokeStyle = 'rgba(255,60,60,' + (0.3 + 0.25*Math.sin(Game.time*22)) + ')';
+      ctx.lineWidth = IS_TOUCH ? 6 : 8; ctx.strokeRect(3, 3, CONFIG.W - 6, CONFIG.H - 6);
+    }
+    if (Waves.bannerT > 0){
+      const kk = Waves.bannerT / CONFIG.wave.waveBanner;
+      ctx.globalAlpha = Math.min(1, kk * 3);
+      ctx.font = 'bold ' + (IS_TOUCH ? 52 : 66) + 'px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(0,0,0,.7)';
+      ctx.fillText('WAVE ' + Waves.num, CONFIG.W/2 + 3, CONFIG.H/2 + 3);
+      ctx.fillStyle = Waves.isBossWave() ? '#ff5a5a' : '#ffd76a';
+      ctx.fillText('WAVE ' + Waves.num, CONFIG.W/2, CONFIG.H/2);
+      ctx.globalAlpha = 1;
+    }
+    if (Game.hurtFlash > 0){
+      ctx.fillStyle = 'rgba(255,30,30,' + Math.min(.4, Game.hurtFlash).toFixed(3) + ')';
+      ctx.fillRect(0, 0, CONFIG.W, CONFIG.H);
+    }
+  },
+};
+
+/* ==================== RENDER：主渲染（主题地板/环境粒子/预警/暗角/震屏/摇杆） ==================== */
+const Render = {
+  ctx: null, amb: [],
+  init(){
+    const cv = document.getElementById('game');
+    cv.width = CONFIG.W;
+    cv.height = CONFIG.H;
+    this.ctx = cv.getContext('2d');
+  },
+  updateAmb(dt){
+    const th = CONFIG.themes[Game.themeIndex()];
+    if (this.amb.length < CONFIG.perf.ambMax && Math.random() < 0.6){
+      const rising = th.particle === 'spark';
+      this.amb.push({ x: Math.random()*CONFIG.W,
+                      y: rising ? CONFIG.H + 8 : Math.random()*CONFIG.H,
+                      a: 0.3 + Math.random()*0.5, s: 1 + Math.random()*2,
+                      vy: (rising ? -1 : 1) * (18 + Math.random()*38),
+                      vx: (Math.random()-0.5)*22, color: th.pColor, t: 0 });
+    }
+    for (let i = this.amb.length - 1; i >= 0; i--){
+      const p = this.amb[i];
+      p.y += p.vy * dt; p.x += p.vx * dt + Math.sin(Game.time*1.5 + i)*0.3;
+      p.t += dt;
+      if (p.t > 3.5 || p.y < -12 || p.y > CONFIG.H + 12) this.amb.splice(i, 1);
+    }
+  },
+  drawFrame(){
+    const ctx = this.ctx;
+    ctx.save();
+    if (Game.shake > 0)
+      ctx.translate((Math.random()-0.5)*Game.shake*CONFIG.perf.shake*2, (Math.random()-0.5)*Game.shake*CONFIG.perf.shake*2);
+    const th = CONFIG.themes[Game.themeIndex()];
+    ctx.fillStyle = th.floor[0];
+    ctx.fillRect(-20, -20, CONFIG.W + 40, CONFIG.H + 40);
+    const tile = 32;
+    for (let y = -32; y < CONFIG.H; y += tile){
+      for (let x = -32; x < CONFIG.W; x += tile){
+        if (((x + y) / tile) % 2 < 1) { ctx.fillStyle = th.floor[1]; ctx.fillRect(x, y, tile, tile); }
+      }
+    }
+    ctx.strokeStyle = 'rgba(0,0,0,.15)'; ctx.lineWidth = 1;
+    for (let y = -32; y < CONFIG.H; y += tile)
+      for (let x = -32; x < CONFIG.W; x += tile) ctx.strokeRect(x, y, tile, tile);
+    for (const p of this.amb){
+      ctx.globalAlpha = p.a;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.s, p.s);
+    }
+    ctx.globalAlpha = 1;
+    for (const te of Game.telegraphs){
+      if (te.t <= 0) continue;
+      const blink = 0.5 + 0.4 * Math.sin(Game.time * 16);
+      for (const it of te.items){
+        ctx.strokeStyle = 'rgba(255,50,40,' + blink.toFixed(3) + ')';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(it.x, it.y, 26, 0, Math.PI*2); ctx.stroke();
+      }
+    }
+    for (const s of Waves.spawnQueue){
+      ctx.font = 'bold 22px "Courier New", monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#ff3a2a';
+      ctx.fillText('!', s.x, s.y - 14);
+      ctx.strokeStyle = 'rgba(255,60,40,.6)';
+      ctx.beginPath(); ctx.arc(s.x, s.y, 12, 0, Math.PI*2); ctx.stroke();
+    }
+    Lava.draw(ctx);
+    Pickups.draw(ctx);
+    EnemySys.draw(ctx);
+    Game.bosses.forEach(b => b.draw(ctx));
+    Player.draw(ctx);
+    Bullets.draw(ctx);
+    Explosions.draw(ctx);
+    for (let i = Game.chainAnim.length - 1; i >= 0; i--){
+      const c = Game.chainAnim[i];
+      c.t -= 1/60;
+      if (c.t <= 0){ Game.chainAnim.splice(i, 1); continue; }
+      ctx.strokeStyle = 'rgba(120,220,255,.9)'; ctx.lineWidth = 2;
+      for (let j = 1; j < c.points.length; j++){
+        ctx.beginPath();
+        ctx.moveTo(c.points[j-1].x, c.points[j-1].y);
+        ctx.lineTo(c.points[j].x, c.points[j].y);
+        ctx.stroke();
+      }
+    }
+    for (let i = Game.frostRings.length - 1; i >= 0; i--){
+      const f = Game.frostRings[i];
+      f.t -= 1/60; f.r += 340 / 60;
+      if (f.t <= 0){ Game.frostRings.splice(i, 1); continue; }
+      ctx.strokeStyle = 'rgba(150,220,255,.8)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); ctx.stroke();
+    }
+    for (const st of Game.strikeFx){
+      if (st.t <= 0) continue;
+      ctx.strokeStyle = '#ffe9a8'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(st.x, st.y - 260);
+      let cx = st.x, cy = st.y - 260;
+      while (cy < st.y){ cx += (Math.random()-0.5)*34; cy += 40; ctx.lineTo(cx, cy); }
+      ctx.stroke();
+    }
+    Particles.draw(ctx);
+    Floaters.draw(ctx);
+    if (IS_TOUCH && Input.joy.active){
+      const r = document.getElementById('game').getBoundingClientRect();
+      const sc = CONFIG.W / r.width;
+      const bx = Input.joy.ox * sc, by = Input.joy.oy * sc;
+      const kx = bx + Input.joy.dx * sc, ky = by + Input.joy.dy * sc;
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = '#aab';
+      ctx.beginPath(); ctx.arc(bx, by, 48, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 0.7;
+      ctx.strokeStyle = '#dfe';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(bx, by, 48, 0, Math.PI*2); ctx.stroke();
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = '#ffd76a';
+      ctx.beginPath(); ctx.arc(kx, ky, 18, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    const grad = ctx.createRadialGradient(CONFIG.W/2, CONFIG.H/2, CONFIG.H*0.35,
+                                          CONFIG.W/2, CONFIG.H/2, CONFIG.H*0.9);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(5,2,12,.42)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(-20, -20, CONFIG.W + 40, CONFIG.H + 40);
+    ctx.restore();
+    Combo.draw(ctx);
+    UI.drawHUD(ctx);
+  },
+};
+
+/* ==================== GAME：主循环（fixed timestep 60fps）+ 状态机 ==================== */
+const Game = {
+  state: 'title',
+  time: 0, acc: 0, last: 0,
+  enemies: [], bosses: [],
+  shake: 0, hurtFlash: 0, goldFlash: 0,
+  telegraphs: [], strikes: [], strikeFx: [], chainAnim: [], frostRings: [],
+  kills: 0, gold: 0,
+  shopOpen: false, pendingCards: null, pendingLvl: 0,
+  isNewRecord: false, bestNew: 0,
+
+  themeIndex(){ return Math.floor(Math.max(0, Waves.num - 1) / 5) % CONFIG.themes.length; },
+
+  reset(){
+    this.enemies = []; this.bosses = [];
+    this.telegraphs = []; this.strikes = []; this.strikeFx = [];
+    this.chainAnim = []; this.frostRings = []; this.rocks.length = 0;
+    this.kills = 0; this.gold = 0; this.shake = 0; this.hurtFlash = 0;
+    this.shopOpen = false; this.pendingCards = null; this.pendingLvl = 0;
+    this.isNewRecord = false;
+    Bullets.pool.clear(); Particles.pool.clear(); Floaters.pool.clear();
+    Pickups.list.length = 0; Explosions.list.length = 0; Lava.pools.length = 0;
+    Render.amb.length = 0;
+    Player.reset(); PlayerGain.reset(); Combo.reset(); Waves.reset();
+    Waves.prevName = '史莱姆 × 7';
+  },
+  startGame(){ this.reset(); this.state = 'play'; UI.hideAll(); Waves.go(); },
+  restart(){ AudioSys.resume(); this.startGame(); },
+  togglePause(){
+    if (this.state === 'play'){ this.state = 'pause'; UI.showPause(); }
+    else if (this.state === 'pause'){ this.state = 'play'; UI.hideAll(); }
+  },
+  spawnEnemy(def, x, y, opts){
+    const e = makeEnemy(def, x, y, opts);
+    if (def.type === 'bomber'){ e.def.bombWarn = 0.6; }
+    if (def.type === 'bull')  { e.def.chargeWarn = 0.8; }
+    this.enemies.push(e);
+  },
+  spawnBoss(key){
+    const cfg = CONFIG.boss[key];
+    const wave = Waves.num;
+    this.bosses.push(new Boss(key, cfg, wave));
+    AudioSys.play('boss');
+    Floaters.add(CONFIG.W/2, CONFIG.H/2 - 40, cfg.name + ' 降临！', '#ff5a5a', 20, true);
+  },
+  damageEnemy(e, dmg, sx, sy, kb){
+    if (!e.alive) return;
+    const crit = Player.lastHitCrit;
+    Player.lastHitCrit = false;
+    const final = Math.max(1, Math.round(dmg * Combo.damageMult()));
+    e.hp -= final;
+    e.flash = CONFIG.melee.hitFlash;
+    if (kb){
+      const a = Math.atan2(e.y - sy, e.x - sx);
+      e.kx += Math.cos(a) * kb; e.ky += Math.sin(a) * kb;
+    }
+    let col = '#ffffff';
+    if (final >= 30) col = '#ffd76a';
+    if (final >= 60) col = '#ff9a40';
+    if (final >= 100) col = '#ff4a4a';
+    if (crit) col = '#ff6a3a';
+    Floaters.add(e.x, e.y - e.r - 6, final + (crit ? '!' : ''), col, crit ? 19 : 13, crit);
+    Combo.add();
+    this.shake = Math.min(6, this.shake + 1.1);
+    if (e.hp <= 0) this.killEnemy(e, false);
+  },
+  killEnemy(e, silent){
+    if (!e.alive) return;
+    e.alive = false;
+    this.kills++;
+    const isBoss = !!e.boss;
+    const def = e.def;
+    Particles.burst(e.x, e.y, e.elite || isBoss ? 16 : 9, e.color || '#e8e8f0', 110, .42, 40);
+    if (!silent){
+      if (isBoss) AudioSys.play('levelUp');
+      else if (def.type === 'tiny') AudioSys.play('split');
+      else AudioSys.play('enemyDie');
+    }
+    if (def.split){
+      for (let i = 0; i < 2; i++){
+        const t = makeEnemy(CONFIG.enemy.tiny, e.x + (i === 0 ? -11 : 11), e.y + 4, null);
+        this.enemies.push(t);
+      }
+      AudioSys.play('split');
+    }
+    if (isBoss){ this.gold += CONFIG.boss.gold; Game.goldFlash = 0.8; AudioSys.play('coin'); }
+    else if (e.elite){
+      const gv = Math.round((10 + Math.random()*6) * Player.goldMult());
+      this.gold += gv; Game.goldFlash = 0.8;
+      Floaters.add(e.x, e.y - 10, '◆' + gv, '#ffd76a', 14, false);
+      AudioSys.play('coin');
+    } else {
+      const gv = def.gold[0] + Math.floor(Math.random() * (def.gold[1] - def.gold[0] + 1));
+      Pickups.add('gold', e.x + (Math.random()*18-9), e.y + (Math.random()*18-9), gv);
+    }
+    if (isBoss) PlayerGain.gain(e.xp);
+    else Pickups.add('xp', e.x + (Math.random()*14-7), e.y + (Math.random()*14-7), e.xp);
+    if (!isBoss){
+      const r = Math.random();
+      if (r < CONFIG.drops.heart) Pickups.add('heart', e.x, e.y);
+      else if (r < CONFIG.drops.heart + CONFIG.drops.magnet) Pickups.add('magnet', e.x, e.y);
+      else if (r < CONFIG.drops.heart + CONFIG.drops.magnet + CONFIG.drops.bomb) Pickups.add('bomb', e.x, e.y);
+    }
+    if (Player.up.drain > 0){ Player.hp = Math.min(Player.maxHp, Player.hp + 2 * Player.up.drain); }
+    if (isBoss){ this.bosses = this.bosses.filter(b => b !== e); }
+  },
+  damageAllEnemies(dmg, sx, sy){
+    this.enemies.forEach(e => { if (e.alive) this.damageEnemy(e, dmg, sx, sy, 0); });
+    this.bosses.forEach(b => { if (b.alive) this.damageEnemy(b, dmg, b.x, b.y, 0); });
+  },
+  explodeAt(x, y, radius, dmg){ Explosions.spawn(x, y, radius, dmg); },
+  nearestEnemy(x, y){
+    let best = null, bd = 1e9;
+    for (const e of this.enemies){
+      if (!e.alive) continue;
+      const d = Collide.dist(x, y, e.x, e.y);
+      if (d < bd){ bd = d; best = e; }
+    }
+    for (const b of this.bosses){
+      if (!b.alive) continue;
+      const d = Collide.dist(x, y, b.x, b.y);
+      if (d < bd){ bd = d; best = b; }
+    }
+    return best;
+  },
+  findEnemyAt(x, y, radius){
+    for (const e of this.enemies){
+      if (!e.alive) continue;
+      if (Collide.dist(x, y, e.x, e.y) < radius + e.r) return e;
+    }
+    for (const b of this.bosses){
+      if (!b.alive) continue;
+      if (Collide.dist(x, y, b.x, b.y) < radius + b.r) return b;
+    }
+    return null;
+  },
+  hurtPlayer(dmg, sx, sy){
+    if (Player.invulnNow()) return;
+    let d = dmg;
+    for (let i = 0; i < Player.up.armor; i++) d *= 0.92;
+    d = Math.max(1, Math.round(d));
+    Player.hp -= d;
+    Player.invulnT = CONFIG.player.invuln;
+    this.hurtFlash = 0.5;
+    this.shake = Math.min(9, this.shake + 4);
+    AudioSys.play('hurt');
+    Floaters.add(Player.x, Player.y - 24, '-' + d, '#ff4a4a', 15, false);
+    if (Player.hp <= 0) this.die();
+  },
+  die(){
+    Player.hp = 0;
+    this.state = 'dead';
+    const prevBest = Save.getBest();
+    Save.saveBest(Waves.num);
+    this.bestNew = Math.max(prevBest, Waves.num);
+    this.isNewRecord = Waves.num > prevBest;
+    UI.showDead();
+    AudioSys.play('hurt');
+  },
+  triggerLevelUp(){
+    if (this.state === 'dead') return;
+    this.pendingLvl++;
+    if (this.state === 'levelup') return;
+    this.beginLevelUp();
+  },
+  beginLevelUp(){
+    this.pendingLvl--;
+    this.state = 'levelup';
+    this.pendingCards = rollCards();
+    UI.showLevelUp(this.pendingCards);
+    AudioSys.play('levelUp');
+  },
+  pickCard(c){
+    AudioSys.play('card');
+    if (c.kind === 'up'){
+      upDefById[c.id].apply();
+      this.shake = Math.min(4, this.shake + 1.5);
+    } else {
+      const sid = c.id;
+      if (sid === 'extra' && !Player.up.kai4){
+        Player.up.kai4 = 1;
+      } else if (Player.ownsSkill(sid) || Player.freeSlot() < 0){
+        this.empowerRandomSkill();
+      } else {
+        Player.skills[Player.freeSlot()] = sid;
+      }
+    }
+    this.state = 'play';
+    this.pendingCards = null;
+    UI.hideAll();
+    if (this.pendingLvl > 0){
+      this.beginLevelUp();
+    } else if (this.shopOpen && Waves.state === 'inter'){
+      UI.showShop();
+    }
+  },
+  empowerRandomSkill(){
+    const equipped = Player.skills.filter(s => s && s !== 'extra');
+    if (!equipped.length) return;
+    const sid = equipped[Math.floor(Math.random() * equipped.length)];
+    Player.empower[sid] = (Player.empower[sid] || 0) + 0.2;
+    Floaters.add(Player.x, Player.y - 30, skillById[sid].name + ' 威力 +20%', '#c0b0ff', 13, false);
+  },
+  openShop(){ this.shopOpen = true; Shop.refresh(); UI.showShop(); },
+  closeShop(){
+    this.shopOpen = false;
+    UI.hideAll();
+    if (Waves.state === 'inter' && this.state !== 'dead') UI.showInter();
+  },
+  pressSkill(n){ useSkillAt(n - 1); },
+  sendLava(x, y){ Lava.send(x, y); },
+  update(dt){
+    this.time += dt;
+    Render.updateAmb(dt);
+    Particles.update(dt);
+    Floaters.update(dt);
+    if (this.state === 'play'){
+      if (Waves.state === 'fight'){
+        Player.update(dt);
+        Combo.tick(dt);
+        EnemySys.update(dt);
+        Bullets.update(dt);
+        Explosions.update(dt);
+        Pickups.update(dt);
+        Lava.update(dt);
+        for (const b of this.bosses) b.update(dt, this);
+        for (let i = this.strikes.length - 1; i >= 0; i--){
+          const s = this.strikes[i];
+          s.delay -= dt;
+          if (s.delay <= 0){
+            this.strikes.splice(i, 1);
+            this.strikeFx.push({ x: s.x, y: s.y, t: 0.3 });
+            this.enemies.forEach(e => {
+              if (e.alive && Collide.dist(e.x, e.y, s.x, s.y) < 55)
+                this.damageEnemy(e, Player.atk*1.2*Player.skillMult('thunder'), s.x, s.y, 40);
+            });
+            this.bosses.forEach(b => {
+              if (b.alive && Collide.dist(b.x, b.y, s.x, s.y) < 60)
+                this.damageEnemy(b, Player.atk*1.2*Player.skillMult('thunder'), s.x, s.y, 30);
+            });
+            Particles.burst(s.x, s.y, 10, '#ffd76a', 110, .3);
+            AudioSys.play('explode');
+          }
+        }
+        for (let i = this.strikeFx.length - 1; i >= 0; i--){
+          this.strikeFx[i].t -= dt;
+          if (this.strikeFx[i].t <= 0) this.strikeFx.splice(i, 1);
+        }
+        for (let i = this.rocks.length - 1; i >= 0; i--){
+          const rk = this.rocks[i];
+          rk.delay -= dt;
+          if (rk.delay <= 0){
+            this.rocks.splice(i, 1);
+            Particles.burst(rk.x, rk.y, 12, '#ffb060', 140, .4);
+            this.shake = Math.min(8, this.shake + 3);
+            if (!Player.invulnNow() && Collide.dist(rk.x, rk.y, Player.x, Player.y) < 45)
+              this.hurtPlayer(12, rk.x, rk.y);
+          }
+        }
+        for (let i = this.telegraphs.length - 1; i >= 0; i--){
+          this.telegraphs[i].t -= dt;
+          if (this.telegraphs[i].t <= 0) this.telegraphs.splice(i, 1);
+        }
+      }
+      Waves.update(dt);
+      Waves.tickAuto(dt);
+    }
+    this.shake = Math.max(0, this.shake - dt * 18);
+    this.hurtFlash = Math.max(0, this.hurtFlash - dt * 1.8);
+    Explosions.update(dt);
+  },
+  loop(ts){
+    if (!this.last) this.last = ts;
+    let delta = (ts - this.last) / 1000;
+    this.last = ts;
+    if (delta > 0.25) delta = 0.25;
+    this.acc += delta;
+    let n = 0;
+    while (this.acc >= CONFIG.STEP && n < 4){ this.update(CONFIG.STEP); this.acc -= CONFIG.STEP; n++; }
+    Render.drawFrame();
+    UI.refreshTouch();
+    requestAnimationFrame((t) => this.loop(t));
+  },
+};
+Game.rocks = [];
+
+/* ==================== Boss 实体：三 Boss 阶段化 AI（60%/30% 行为切换） ==================== */
+class Boss {
+  constructor(key, cfg, wave){
+    this.key = key; this.name = cfg.name;
+    this.hp = cfg.baseHp + wave * cfg.perHp;
+    this.maxHp = this.hp;
+    this.atk = Math.round(12 + wave * 1.5);
+    this.wave = wave;
+    this.x = CONFIG.W/2; this.y = CONFIG.H/2 - 40;
+    this.r = 26; this.alive = true; this.boss = true;
+    this.flash = 0; this.frozen = 0; this.kx = 0; this.ky = 0;
+    this.st = 'intro'; this.stT = 1.0; this.phase = 1; this.t = 0; this.seed = Math.random()*100;
+    this.scale = 4;
+    this.sprName = key === 'guard' ? 'boss_guard' : key === 'lich' ? 'boss_lich' : 'boss_dragon';
+    this.xp = CONFIG.boss.expBase + wave * CONFIG.boss.expPer;
+    this.speed = key === 'guard' ? 95 : key === 'lich' ? 62 : 78;
+    this.color = key === 'guard' ? '#90a8c8' : key === 'lich' ? '#38c0a0' : '#f06a30';
+    this.id = (Math.random()*1e9)|0;
+    this.cd1 = 0.6; this.cd2 = 0.8;
+  }
+  update(dt, game){
+    if (!this.alive) return;
+    this.t += dt;
+    this.flash = Math.max(0, this.flash - dt);
+    this.phase = this.hp / this.maxHp < 0.3 ? 3 : this.hp / this.maxHp < 0.6 ? 2 : 1;
+    if (this.st === 'intro'){
+      this.y += (CONFIG.H/2 - this.y) * dt * 2;
+      this.stT -= dt;
+      if (this.stT <= 0) this.st = 'idle';
+      return;
+    }
+    const dx = Player.x - this.x, dy = Player.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const ang = Math.atan2(dy, dx);
+    if (!Player.invulnNow() && Collide.circle(this.x, this.y, this.r, Player.x, Player.y, Player.hitRadius())){
+      game.hurtPlayer(this.atk, this.x, this.y);
+    }
+    if (this.key === 'guard')  this.updateGuard(dt, game, ang, dist);
+    if (this.key === 'lich')   this.updateLich(dt, game, ang, dist);
+    if (this.key === 'dragon') this.updateDragon(dt, game, ang, dist);
+    if (this.hp <= 0){ this.alive = false; game.killEnemy(this, false); }
+  }
+  bossBullet(game, ang, spd, color, dmg){
+    Bullets.add({ x:this.x, y:this.y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, dmg,
+                  life:3.5, color, type:'enemy', aoe:0, pierce:0, radius:4, rot:ang });
+  }
+  /* --- 回廊守卫：追踪+砸地红圈 → P2 环形弹幕 → P3 召唤+冲锋 --- */
+  updateGuard(dt, game, ang, dist){
+    if (this.st === 'slam'){
+      if (this.stT <= 0){
+        this.st = 'idle'; this.stT = 1.5;
+        game.shake = Math.min(10, game.shake + 5);
+        Particles.burst(this.x, this.y, 16, '#9aa8c8', 170, .42);
+        if (!Player.invulnNow() && Collide.dist(this.x, this.y, Player.x, Player.y) < 92)
+          game.hurtPlayer(this.atk * 1.4, this.x, this.y);
+        if (this.phase >= 2){
+          const ring = Math.round(16 * CONFIG.perf.bossBullets);
+          for (let i = 0; i < ring; i++){
+            const a = i / Math.max(1, ring) * Math.PI * 2;
+            this.bossBullet(game, a, 190, '#c0d0f0', this.atk * 0.55);
+          }
+          AudioSys.play('fire');
+        }
+      }
+    } else {
+      this.x += Math.cos(ang) * this.speed * dt;
+      this.y += Math.sin(ang) * this.speed * dt;
+      if (dist < 115){
+        this.st = 'slam'; this.stT = 0.8;
+        game.telegraphs.push({ kind:'slam', items:[{ x:this.x, y:this.y }], t: 0.8 });
+        AudioSys.play('thunder');
+      }
+      if (this.phase === 3){
+        this.stT -= dt;
+        if (this.stT <= 0){
+          this.stT = 5.5;
+          for (let i = 0; i < 3; i++)
+            game.spawnEnemy(CONFIG.enemy.skeleton, this.x + (Math.random()*44-22), this.y + (Math.random()*44-22), null);
+          AudioSys.play('clone');
+        }
+      }
+    }
+  }
+  /* --- 巫妖王：三连弹幕 → 召唤骷髅 → 瞬移+冰锥冻结 --- */
+  updateLich(dt, game, ang, dist){
+    this.cd1 -= dt;
+    if (this.cd1 <= 0){
+      this.cd1 = this.phase >= 3 ? 1.7 : this.phase === 2 ? 2.2 : 2.8;
+      const n = this.phase >= 2 ? 5 : 3;
+      for (let i = 0; i < n; i++){
+        const a = ang + (i - (n-1)/2) * 0.14;
+        this.bossBullet(game, a, 215, '#6ff0d0', this.atk * 0.55);
+      }
+      AudioSys.play('fire');
+      if (this.phase >= 2 && Math.random() < 0.55){
+        for (let i = 0; i < 2; i++)
+          game.spawnEnemy(CONFIG.enemy.skeleton, this.x + (Math.random()*50-25), this.y + (Math.random()*50-25), null);
+        AudioSys.play('clone');
+      }
+      if (this.phase === 3 && Math.random() < 0.5){
+        Particles.burst(this.x, this.y, 12, '#38c0a0', 90, .35);
+        const a2 = Math.random()*Math.PI*2;
+        this.x = Math.max(40, Math.min(CONFIG.W-40, Player.x + Math.cos(a2)*170));
+        this.y = Math.max(40, Math.min(CONFIG.H-40, Player.y + Math.sin(a2)*170));
+        Particles.burst(this.x, this.y, 12, '#38c0a0', 90, .35);
+        AudioSys.play('clone');
+      }
+      if (this.phase === 3 && Math.random() < 0.4){
+        game.telegraphs.push({ kind:'slam', items:[{ x:Player.x, y:Player.y }], t: 0.55 });
+        game.frostRings.push({ x:Player.x, y:Player.y, r:0, t:0.4 });
+        if (!Player.invulnNow() && Collide.dist(this.x, this.y, Player.x, Player.y) < 260)
+          game.hurtPlayer(this.atk * 0.9, this.x, this.y);
+        AudioSys.play('freeze');
+      }
+    }
+    if (dist < 200){ this.x -= Math.cos(ang)*this.speed*dt; this.y -= Math.sin(ang)*this.speed*dt; }
+    else if (dist > 320){ this.x += Math.cos(ang)*this.speed*dt; this.y += Math.sin(ang)*this.speed*dt; }
+  }
+  /* --- 熔岩巨龙：锥形喷火 → 熔岩池 → 俯冲+全场落石 --- */
+  updateDragon(dt, game, ang, dist){
+    this.cd1 -= dt;
+    if (this.st === 'dive'){
+      this.x += Math.cos(this.diveAng) * 280 * dt;
+      this.y += Math.sin(this.diveAng) * 280 * dt;
+      this.stT -= dt;
+      if (this.stT <= 0) this.st = 'idle';
+      return;
+    }
+    this.y += Math.cos(ang + Math.sin(this.t*4)*0.25) * this.speed * dt;
+    this.x += Math.sin(ang + Math.sin(this.t*4)*0.25) * this.speed * dt;
+    if (this.cd1 <= 0){
+      this.cd1 = 2.4;
+      const cone = Math.round(6 * CONFIG.perf.bossBullets);
+      for (let i = 0; i < cone; i++){
+        const a = ang + (i - (cone-1)/2) * 0.14;
+        this.bossBullet(game, a, 235, '#ff8a40', this.atk * 0.6);
+      }
+      AudioSys.play('fire');
+      if (this.phase >= 2){
+        game.sendLava(this.x, this.y);
+        AudioSys.play('explode');
+      }
+      if (this.phase === 3){
+        if (Math.random() < 0.7){
+          this.st = 'dive'; this.stT = 0.9; this.diveAng = ang;
+        }
+        AudioSys.play('thunder');
+        for (let i = 0; i < 3; i++){
+          const rx = Math.random()*(CONFIG.W-100) + 50, ry = Math.random()*(CONFIG.H*0.55) + 50;
+          game.telegraphs.push({ kind:'slam', items:[{ x:rx, y:ry }], t: 0.6 });
+          game.rocks.push({ x:rx, y:ry, delay: 0.6 });
+        }
+      }
+    }
+  }
+  draw(ctx){
+    const bw = IS_TOUCH ? 240 : 300, bh = IS_TOUCH ? 9 : 10;
+    const bx = CONFIG.W/2 - bw/2;
+    const by = IS_TOUCH ? CONFIG.H - 80 : CONFIG.H - 62;
+    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(bx-2, by-2, bw+4, bh+4);
+    ctx.fillStyle = '#5a1a1a'; ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = '#ff3a3a';
+    ctx.fillRect(bx, by, bw * Math.max(0, this.hp / this.maxHp), bh);
+    ctx.strokeStyle = '#ffd76a'; ctx.lineWidth = 2; ctx.strokeRect(bx, by, bw, bh);
+    ctx.font = 'bold ' + (IS_TOUCH ? 11 : 13) + 'px "Courier New", monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(this.name + '（阶段' + this.phase + '）', CONFIG.W/2, by - 6);
+    if (this.frozen > 0){
+      ctx.fillStyle = 'rgba(120,200,255,.22)';
+      ctx.beginPath(); ctx.arc(this.x, this.y, 30, 0, Math.PI*2); ctx.fill();
+    }
+    drawSprite(ctx, this.sprName, this.x, this.y, this.scale, this.flash > 0, false);
+  }
+}
+
+/* ==================== 熔岩池（范围持续灼烧） ==================== */
+const Lava = {
+  pools: [],
+  send(x, y){ this.pools.push({ x, y, r: 0, t: 0, life: 4 }); },
+  update(dt){
+    for (let i = this.pools.length - 1; i >= 0; i--){
+      const p = this.pools[i];
+      p.t += dt;
+      if (p.t >= p.life){ this.pools.splice(i, 1); continue; }
+      p.r = Math.min(60, p.r + 120 * dt);
+      if (Math.random() < dt*10)
+        Particles.add(p.x + (Math.random()-0.5)*p.r*1.4, p.y + (Math.random()-0.5)*p.r*1.4,
+                      (Math.random()-0.5)*50, -90, .5, '#ff7a30', 3);
+      if (Game.state === 'play' && Collide.dist(p.x, p.y, Player.x, Player.y) < p.r && !Player.invulnNow()){
+        if (!p.dmgT || p.dmgT <= 0){ p.dmgT = 0.5; Game.hurtPlayer(10, p.x, p.y); }
+        p.dmgT -= dt;
+      }
+    }
+  },
+  draw(ctx){
+    for (const p of this.pools){
+      ctx.fillStyle = 'rgba(255,110,40,.45)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,160,80,.7)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.stroke();
+    }
+  },
+};
+
+/* ==================== 存档：localStorage 最高纪录 ==================== */
+const Save = {
+  key: 'pixelHeroBestWave',
+  getBest(){ try { return parseInt(localStorage.getItem(this.key) || '0', 10) || 0; } catch(e){ return 0; } },
+  saveBest(w){
+    try { const best = Math.max(this.getBest(), w); localStorage.setItem(this.key, String(best)); return best; }
+    catch(e){ return Math.max(this.getBest(), w); }
+  },
+};
+
+/* ==================== 装配：事件绑定 + 竖屏检测 + 启动 ==================== */
+(function boot(){
+  Render.init();
+  Input.init();
+  UI.init();
+  // 窗口/竖屏适配
+  const fit = () => {
+    const cv = document.getElementById('game');
+    const s = Math.min(window.innerWidth / CONFIG.W, window.innerHeight / CONFIG.H);
+    cv.style.width  = Math.floor(CONFIG.W * s) + 'px';
+    cv.style.height = Math.floor(CONFIG.H * s) + 'px';
+    if (IS_TOUCH){
+      const isPortrait = window.innerHeight > window.innerWidth;
+      document.getElementById('lay-rotate').classList.toggle('show', isPortrait);
+    }
+  };
+  window.addEventListener('resize', fit);
+  fit();
+  // 标题启动：首次按键/点击/触摸 → 创建 AudioContext 并进入游戏
+  window.addEventListener('keydown', function titleKeyStart(){
+    AudioSys.init(); AudioSys.resume();
+    if (Game.state === 'title'){
+      Game.startGame();
+      window.removeEventListener('keydown', titleKeyStart);
+      window.removeEventListener('touchstart', titleTouchStart);
+      window.removeEventListener('mousedown', titleMouseStart);
+    }
+  });
+  window.addEventListener('touchstart', function titleTouchStart(){
+    AudioSys.init(); AudioSys.resume();
+    if (Game.state === 'title'){
+      Game.startGame();
+      window.removeEventListener('keydown', titleKeyStart);
+      window.removeEventListener('touchstart', titleTouchStart);
+      window.removeEventListener('mousedown', titleMouseStart);
+    }
+  }, { passive:true });
+  window.addEventListener('mousedown', function titleMouseStart(){
+    AudioSys.init(); AudioSys.resume();
+    if (Game.state === 'title'){
+      Game.startGame();
+      window.removeEventListener('keydown', titleKeyStart);
+      window.removeEventListener('touchstart', titleTouchStart);
+      window.removeEventListener('mousedown', titleMouseStart);
+    }
+  });
+  // 数字键：选卡(1-3) / 技能(1-4)
+  window.addEventListener('keydown', (e) => {
+    const n = parseInt(e.key, 10);
+    if (!isNaN(n) && n >= 1 && n <= 4){
+      if (Game.state === 'levelup' && n <= 3) UI.pickCardByNumber(n);
+      else if (Game.state === 'play') Game.pressSkill(n);
+    }
+  }, false);
+  // 空格：休整开波 / 关闭商店 / 死亡重开
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== ' ') return;
+    e.preventDefault();
+    if (Game.state === 'dead') Game.restart();
+    else if (Game.state === 'play' && Waves.state === 'inter') Waves.go();
+    else if (Game.shopOpen) Game.closeShop();
+  }, false);
+  // 暂停层点击恢复（准备区面板避免拦截按钮点击）
+  document.getElementById('lay-pause').addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'resume-btn') return;
+  });
+  // 启动主循环
+  Game.last = 0;
+  requestAnimationFrame((t) => Game.loop(t));
+})();
+</script>
+</body>
+</html>
