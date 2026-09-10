@@ -1,0 +1,30 @@
+name: ✨ 功能 / 玩法建议
+about: 有新想法想加进游戏？
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你的想法
+      description: 想加什么新敌人/Boss/技能/强化卡/商店商品？或某条数值想怎么调？
+      placeholder: 例如：新 Boss「…」，新技能「…」
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么需要它
+      description: 它能给玩法带来什么？（比如“后期输出手段太少”之类）
+    validations:
+      required: false
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 改动范围
+      options:
+        - 小改（数值/文案）
+        - 中改（新技能/新敌人）
+        - 大改（新系统/Boss）
+    validations:
+      required: false
