@@ -1,0 +1,49 @@
+name: 🐛 Bug 报告
+about: 游戏出问题了？帮我们定位一下
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请在提交前先到 [Discussions](链接) 或已存在的 Issue 里看看是否有人遇到相同问题。
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 在哪里遇到的？
+      options:
+        - 桌面（Mac/Win，键鼠）
+        - 手机（iOS/Android，触屏）
+        - 桌面（触屏笔记本）
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 浏览器与机型
+      description: 例如：iPhone 14 Safari / Mac Chrome 120
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      description: 具体做了什么操作？在什么波次/状态发生？
+      placeholder: |
+        1. 打开游戏…
+        2. 打到第 X 波…
+        3. 按了…
+    validations:
+      required: true
+  - type: textarea
+    id: expect
+    attributes:
+      label: 预期行为 vs 实际行为
+      placeholder: 预期… / 实际…
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: 其他信息（可选）
+      description: 截图、控制台报错（桌面 F12）、视频链接等
